@@ -150,3 +150,35 @@
     color: var(--color-foreground);
   }
 }
+
+@theme inline {
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-navy-deep: var(--navy-deep);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --font-display: Georgia, "Times New Roman", serif;
+}
+
+@layer base {
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    color: var(--color-primary);
+  }
+}
+
+@utility brand-bar {
+  background-image: var(--gradient-navy);
+  border-bottom: 3px solid var(--color-gold);
+}
+
+@utility card-elevated {
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+@utility gold-rule {
+  border-bottom: 2px solid var(--color-gold);
+}
