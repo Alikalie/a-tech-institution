@@ -1,0 +1,306 @@
+import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
+async function assertAdmin(context: { supabase: { rpc: Function }; userId: string }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (context.supabase as any).rpc("has_role", {
+    _user_id: context.userId,
+    _role: "admin",
+  });
+  if (error || !data) throw new Error("Forbidden: administrator access required");
+}
+
+function sixDigitCode() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+/** Any signed-in user may claim administrator ONLY while no admin exists. */
+export const claimFirstAdmin = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await context.supabase.rpc("claim_first_admin");
+    if (error) throw new Error(error.message);
+    return { claimed: Boolean(data) };
+  });
+
+/** Applicant enters the payment code issued by the administrator. */
+export const verifyPaymentCode = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { code: string }) => {
+    const code = String(input?.code ?? "").trim();
+    if (!/^\d{6}$/.test(code)) throw new Error("Enter the 6-digit code issued by A-TECH.");
+    return { code };
+  })
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: payment } = await supabaseAdmin
+      .from("payments")
+      .select("*")
+      .eq("user_id", context.userId)
+      .eq("status", "paid")
+      .eq("code", data.code)
+      .maybeSingle();
+    if (!payment) {
+      return { ok: false, message: "That code doesn't match. Check with A-TECH if you have not received one." };
+    }
+    await supabaseAdmin.from("profiles").update({ verified: true }).eq("id", context.userId);
+    await supabaseAdmin.from("notifications").insert({
+      user_id: context.userId,
+      title: "Account verified",
+      message: "Your A-TECH account is verified. You can now apply for courses.",
+    });
+    await supabaseAdmin.from("activity_log").insert({
+      actor_id: context.userId,
+      action: "Account verified",
+      detail: `Payment ${payment.reference}`,
+    });
+    return { ok: true, message: "Account verified." };
+  });
+
+/** Admin confirms a payment and the system generates the verification code. */
+export const confirmPayment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { paymentId: string }) => ({ paymentId: String(input.paymentId) }))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const code = sixDigitCode();
+    const { data: payment, error } = await supabaseAdmin
+      .from("payments")
+      .update({ status: "paid", code, paid_at: new Date().toISOString() })
+      .eq("id", data.paymentId)
+      .select("*")
+      .single();
+    if (error) throw new Error(error.message);
+    await supabaseAdmin.from("notifications").insert({
+      user_id: payment.user_id,
+      title: "Payment confirmed",
+      message: `Your payment was confirmed. Your verification code is ${code}. Enter it to activate your account.`,
+    });
+    await supabaseAdmin.from("activity_log").insert({
+      actor_id: context.userId,
+      action: "Payment confirmed",
+      detail: `Reference ${payment.reference}`,
+    });
+    return { code };
+  });
+
+/** Admin accepts or rejects an application. Acceptance issues an A-TECH Student ID. */
+export const decideApplication = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { applicationId: string; decision: "accepted" | "rejected" }) => ({
+    applicationId: String(input.applicationId),
+    decision: input.decision === "accepted" ? ("accepted" as const) : ("rejected" as const),
+  }))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: app, error: appErr } = await supabaseAdmin
+      .from("applications")
+      .select("*")
+      .eq("id", data.applicationId)
+      .single();
+    if (appErr) throw new Error(appErr.message);
+
+    if (data.decision === "rejected") {
+      await supabaseAdmin
+        .from("applications")
+        .update({ status: "rejected", reviewed_at: new Date().toISOString() })
+        .eq("id", app.id);
+      await supabaseAdmin.from("notifications").insert({
+        user_id: app.user_id,
+        title: "Application update",
+        message: `Your application ${app.reference} was not successful on this occasion.`,
+      });
+      await supabaseAdmin.from("activity_log").insert({
+        actor_id: context.userId,
+        action: "Application rejected",
+        detail: app.reference,
+      });
+      return { status: "rejected" as const, studentId: null };
+    }
+
+    let studentId = app.student_id as string | null;
+    if (!studentId) {
+      const { data: profile } = await supabaseAdmin
+        .from("profiles")
+        .select("student_id")
+        .eq("id", app.user_id)
+        .maybeSingle();
+      studentId = profile?.student_id ?? null;
+    }
+    if (!studentId) {
+      const { data: generated, error: genErr } = await supabaseAdmin.rpc("next_student_id");
+      if (genErr) throw new Error(genErr.message);
+      studentId = generated as string;
+    }
+
+    await supabaseAdmin
+      .from("applications")
+      .update({ status: "accepted", student_id: studentId, reviewed_at: new Date().toISOString() })
+      .eq("id", app.id);
+    await supabaseAdmin.from("profiles").update({ student_id: studentId }).eq("id", app.user_id);
+    await supabaseAdmin
+      .from("user_roles")
+      .upsert({ user_id: app.user_id, role: "student" }, { onConflict: "user_id,role" });
+    await supabaseAdmin.from("notifications").insert({
+      user_id: app.user_id,
+      title: "Application accepted",
+      message: `Congratulations! You have been accepted. Your A-TECH Student ID is ${studentId}. Download your acceptance letter from My Applications.`,
+    });
+    await supabaseAdmin.from("activity_log").insert({
+      actor_id: context.userId,
+      action: "Application accepted",
+      detail: `${app.reference} → ${studentId}`,
+    });
+    return { status: "accepted" as const, studentId };
+  });
+
+/** Admin grants or removes a role (tutor / admin / student). */
+export const setUserRole = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { userId: string; role: "admin" | "tutor" | "student"; grant: boolean }) => ({
+    userId: String(input.userId),
+    role: input.role,
+    grant: Boolean(input.grant),
+  }))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (data.grant) {
+      await supabaseAdmin
+        .from("user_roles")
+        .upsert({ user_id: data.userId, role: data.role }, { onConflict: "user_id,role" });
+      if (data.role === "tutor" || data.role === "admin") {
+        await supabaseAdmin.from("profiles").update({ verified: true }).eq("id", data.userId);
+      }
+    } else {
+      await supabaseAdmin
+        .from("user_roles")
+        .delete()
+        .eq("user_id", data.userId)
+        .eq("role", data.role);
+    }
+    await supabaseAdmin.from("activity_log").insert({
+      actor_id: context.userId,
+      action: data.grant ? "Role granted" : "Role removed",
+      detail: `${data.role} for ${data.userId}`,
+    });
+    return { ok: true };
+  });
+
+/** Admin view: every account with roles, verification state and student ID. */
+export const listAccounts = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [{ data: profiles }, { data: roles }] = await Promise.all([
+      supabaseAdmin.from("profiles").select("*").order("created_at", { ascending: false }),
+      supabaseAdmin.from("user_roles").select("user_id, role"),
+    ]);
+    return (profiles ?? []).map((p) => ({
+      ...p,
+      roles: (roles ?? []).filter((r) => r.user_id === p.id).map((r) => r.role as string),
+    }));
+  });
+
+/** Tutor uploads a grade against an A-TECH Student ID. */
+export const uploadGrade = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (input: {
+      studentId: string;
+      courseCode: string;
+      assessment: string;
+      score: number;
+      grade: string;
+      remarks: string;
+    }) => {
+      const studentId = String(input.studentId ?? "").trim();
+      if (!studentId) throw new Error("Student ID is required.");
+      if (!input.courseCode) throw new Error("Select a course.");
+      if (!String(input.assessment ?? "").trim()) throw new Error("Assessment title is required.");
+      return {
+        studentId,
+        courseCode: String(input.courseCode),
+        assessment: String(input.assessment).trim().slice(0, 120),
+        score: Number(input.score) || 0,
+        grade: String(input.grade ?? "").slice(0, 4),
+        remarks: String(input.remarks ?? "").slice(0, 400),
+      };
+    },
+  )
+  .handler(async ({ data, context }) => {
+    const { data: isTutor } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "tutor",
+    });
+    const { data: isAdmin } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (!isTutor && !isAdmin) throw new Error("Forbidden: tutor access required");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: student } = await supabaseAdmin
+      .from("profiles")
+      .select("id, full_name, student_id")
+      .eq("student_id", data.studentId)
+      .maybeSingle();
+    if (!student) return { ok: false, message: "No student found with that A-TECH Student ID." };
+
+    const { error } = await supabaseAdmin.from("grades").insert({
+      student_user_id: student.id,
+      student_id: data.studentId,
+      course_code: data.courseCode,
+      assessment: data.assessment,
+      score: data.score,
+      grade: data.grade,
+      remarks: data.remarks,
+      tutor_id: context.userId,
+    });
+    if (error) throw new Error(error.message);
+
+    const { data: me } = await supabaseAdmin
+      .from("profiles")
+      .select("full_name")
+      .eq("id", context.userId)
+      .maybeSingle();
+
+    await supabaseAdmin.from("notifications").insert({
+      user_id: student.id,
+      title: "New result published",
+      message: `A result for ${data.assessment} has been uploaded to your account.`,
+    });
+    await supabaseAdmin.from("activity_log").insert({
+      actor_id: context.userId,
+      actor_name: me?.full_name ?? "",
+      action: "Grade uploaded",
+      detail: `${data.assessment} for ${data.studentId}`,
+    });
+    return { ok: true, message: `Result recorded for ${student.full_name}.` };
+  });
+
+/** Tutor view: all students with an issued A-TECH Student ID. */
+export const listStudents = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: isTutor } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "tutor",
+    });
+    const { data: isAdmin } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (!isTutor && !isAdmin) throw new Error("Forbidden: tutor access required");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin
+      .from("profiles")
+      .select("id, full_name, phone, email, student_id")
+      .not("student_id", "is", null)
+      .order("student_id");
+    return data ?? [];
+  });
