@@ -20,6 +20,7 @@ import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedPortalIndexRouteImport } from './routes/_authenticated/portal.index'
 import { Route as AuthenticatedPortalApplicationsRouteImport } from './routes/_authenticated/portal.applications'
 import { Route as AuthenticatedPortalApplyRouteImport } from './routes/_authenticated/portal.apply'
+import { Route as AuthenticatedPortalProfileRouteImport } from './routes/_authenticated/portal.profile'
 import { Route as AuthenticatedPortalVerifyRouteImport } from './routes/_authenticated/portal.verify'
 
 const IndexRoute = IndexRouteImport.update({
@@ -79,6 +80,12 @@ const AuthenticatedPortalApplyRoute =
     path: '/apply',
     getParentRoute: () => AuthenticatedPortalRoute,
   } as any)
+const AuthenticatedPortalProfileRoute =
+  AuthenticatedPortalProfileRouteImport.update({
+    id: '/profile',
+    path: '/profile',
+    getParentRoute: () => AuthenticatedPortalRoute,
+  } as any)
 const AuthenticatedPortalVerifyRoute =
   AuthenticatedPortalVerifyRouteImport.update({
     id: '/verify',
@@ -96,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/portal': typeof AuthenticatedPortalRouteWithChildren
   '/portal/applications': typeof AuthenticatedPortalApplicationsRoute
   '/portal/apply': typeof AuthenticatedPortalApplyRoute
+  '/portal/profile': typeof AuthenticatedPortalProfileRoute
   '/portal/verify': typeof AuthenticatedPortalVerifyRoute
   '/portal/': typeof AuthenticatedPortalIndexRoute
 }
@@ -108,6 +116,7 @@ export interface FileRoutesByTo {
   '/courses': typeof CoursesRoute
   '/portal/applications': typeof AuthenticatedPortalApplicationsRoute
   '/portal/apply': typeof AuthenticatedPortalApplyRoute
+  '/portal/profile': typeof AuthenticatedPortalProfileRoute
   '/portal/verify': typeof AuthenticatedPortalVerifyRoute
   '/portal': typeof AuthenticatedPortalIndexRoute
 }
@@ -123,6 +132,7 @@ export interface FileRoutesById {
   '/_authenticated/portal': typeof AuthenticatedPortalRouteWithChildren
   '/_authenticated/portal/applications': typeof AuthenticatedPortalApplicationsRoute
   '/_authenticated/portal/apply': typeof AuthenticatedPortalApplyRoute
+  '/_authenticated/portal/profile': typeof AuthenticatedPortalProfileRoute
   '/_authenticated/portal/verify': typeof AuthenticatedPortalVerifyRoute
   '/_authenticated/portal/': typeof AuthenticatedPortalIndexRoute
 }
@@ -138,6 +148,7 @@ export interface FileRouteTypes {
     | '/portal'
     | '/portal/applications'
     | '/portal/apply'
+    | '/portal/profile'
     | '/portal/verify'
     | '/portal/'
   fileRoutesByTo: FileRoutesByTo
@@ -150,6 +161,7 @@ export interface FileRouteTypes {
     | '/courses'
     | '/portal/applications'
     | '/portal/apply'
+    | '/portal/profile'
     | '/portal/verify'
     | '/portal'
   id:
@@ -164,6 +176,7 @@ export interface FileRouteTypes {
     | '/_authenticated/portal'
     | '/_authenticated/portal/applications'
     | '/_authenticated/portal/apply'
+    | '/_authenticated/portal/profile'
     | '/_authenticated/portal/verify'
     | '/_authenticated/portal/'
   fileRoutesById: FileRoutesById
@@ -257,6 +270,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPortalApplyRouteImport
       parentRoute: typeof AuthenticatedPortalRoute
     }
+    '/_authenticated/portal/profile': {
+      id: '/_authenticated/portal/profile'
+      path: '/profile'
+      fullPath: '/portal/profile'
+      preLoaderRoute: typeof AuthenticatedPortalProfileRouteImport
+      parentRoute: typeof AuthenticatedPortalRoute
+    }
     '/_authenticated/portal/verify': {
       id: '/_authenticated/portal/verify'
       path: '/verify'
@@ -270,6 +290,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedPortalRouteChildren {
   AuthenticatedPortalApplicationsRoute: typeof AuthenticatedPortalApplicationsRoute
   AuthenticatedPortalApplyRoute: typeof AuthenticatedPortalApplyRoute
+  AuthenticatedPortalProfileRoute: typeof AuthenticatedPortalProfileRoute
   AuthenticatedPortalVerifyRoute: typeof AuthenticatedPortalVerifyRoute
   AuthenticatedPortalIndexRoute: typeof AuthenticatedPortalIndexRoute
 }
@@ -277,6 +298,7 @@ interface AuthenticatedPortalRouteChildren {
 const AuthenticatedPortalRouteChildren: AuthenticatedPortalRouteChildren = {
   AuthenticatedPortalApplicationsRoute: AuthenticatedPortalApplicationsRoute,
   AuthenticatedPortalApplyRoute: AuthenticatedPortalApplyRoute,
+  AuthenticatedPortalProfileRoute: AuthenticatedPortalProfileRoute,
   AuthenticatedPortalVerifyRoute: AuthenticatedPortalVerifyRoute,
   AuthenticatedPortalIndexRoute: AuthenticatedPortalIndexRoute,
 }
