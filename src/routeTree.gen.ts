@@ -18,6 +18,7 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CoursesRouteImport } from './routes/courses'
 import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated/portal'
 import { Route as AuthenticatedPortalIndexRouteImport } from './routes/_authenticated/portal.index'
+import { Route as AuthenticatedPortalAdminRouteImport } from './routes/_authenticated/portal.admin'
 import { Route as AuthenticatedPortalApplicationsRouteImport } from './routes/_authenticated/portal.applications'
 import { Route as AuthenticatedPortalApplyRouteImport } from './routes/_authenticated/portal.apply'
 import { Route as AuthenticatedPortalGradesRouteImport } from './routes/_authenticated/portal.grades'
@@ -71,6 +72,12 @@ const AuthenticatedPortalIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedPortalRoute,
   } as any)
+const AuthenticatedPortalAdminRoute =
+  AuthenticatedPortalAdminRouteImport.update({
+    id: '/admin',
+    path: '/admin',
+    getParentRoute: () => AuthenticatedPortalRoute,
+  } as any)
 const AuthenticatedPortalApplicationsRoute =
   AuthenticatedPortalApplicationsRouteImport.update({
     id: '/applications',
@@ -122,6 +129,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
   '/portal': typeof AuthenticatedPortalRouteWithChildren
+  '/portal/admin': typeof AuthenticatedPortalAdminRoute
   '/portal/applications': typeof AuthenticatedPortalApplicationsRoute
   '/portal/apply': typeof AuthenticatedPortalApplyRoute
   '/portal/grades': typeof AuthenticatedPortalGradesRoute
@@ -138,6 +146,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
+  '/portal/admin': typeof AuthenticatedPortalAdminRoute
   '/portal/applications': typeof AuthenticatedPortalApplicationsRoute
   '/portal/apply': typeof AuthenticatedPortalApplyRoute
   '/portal/grades': typeof AuthenticatedPortalGradesRoute
@@ -157,6 +166,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
   '/_authenticated/portal': typeof AuthenticatedPortalRouteWithChildren
+  '/_authenticated/portal/admin': typeof AuthenticatedPortalAdminRoute
   '/_authenticated/portal/applications': typeof AuthenticatedPortalApplicationsRoute
   '/_authenticated/portal/apply': typeof AuthenticatedPortalApplyRoute
   '/_authenticated/portal/grades': typeof AuthenticatedPortalGradesRoute
@@ -176,6 +186,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/courses'
     | '/portal'
+    | '/portal/admin'
     | '/portal/applications'
     | '/portal/apply'
     | '/portal/grades'
@@ -192,6 +203,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/courses'
+    | '/portal/admin'
     | '/portal/applications'
     | '/portal/apply'
     | '/portal/grades'
@@ -210,6 +222,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/courses'
     | '/_authenticated/portal'
+    | '/_authenticated/portal/admin'
     | '/_authenticated/portal/applications'
     | '/_authenticated/portal/apply'
     | '/_authenticated/portal/grades'
@@ -295,6 +308,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPortalIndexRouteImport
       parentRoute: typeof AuthenticatedPortalRoute
     }
+    '/_authenticated/portal/admin': {
+      id: '/_authenticated/portal/admin'
+      path: '/admin'
+      fullPath: '/portal/admin'
+      preLoaderRoute: typeof AuthenticatedPortalAdminRouteImport
+      parentRoute: typeof AuthenticatedPortalRoute
+    }
     '/_authenticated/portal/applications': {
       id: '/_authenticated/portal/applications'
       path: '/applications'
@@ -348,6 +368,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedPortalRouteChildren {
+  AuthenticatedPortalAdminRoute: typeof AuthenticatedPortalAdminRoute
   AuthenticatedPortalApplicationsRoute: typeof AuthenticatedPortalApplicationsRoute
   AuthenticatedPortalApplyRoute: typeof AuthenticatedPortalApplyRoute
   AuthenticatedPortalGradesRoute: typeof AuthenticatedPortalGradesRoute
@@ -359,6 +380,7 @@ interface AuthenticatedPortalRouteChildren {
 }
 
 const AuthenticatedPortalRouteChildren: AuthenticatedPortalRouteChildren = {
+  AuthenticatedPortalAdminRoute: AuthenticatedPortalAdminRoute,
   AuthenticatedPortalApplicationsRoute: AuthenticatedPortalApplicationsRoute,
   AuthenticatedPortalApplyRoute: AuthenticatedPortalApplyRoute,
   AuthenticatedPortalGradesRoute: AuthenticatedPortalGradesRoute,
