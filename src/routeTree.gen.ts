@@ -18,12 +18,14 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CoursesRouteImport } from './routes/courses'
 import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated/portal'
 import { Route as AuthenticatedPortalIndexRouteImport } from './routes/_authenticated/portal.index'
+import { Route as AuthenticatedPortalAdminRouteImport } from './routes/_authenticated/portal.admin'
 import { Route as AuthenticatedPortalApplicationsRouteImport } from './routes/_authenticated/portal.applications'
 import { Route as AuthenticatedPortalApplyRouteImport } from './routes/_authenticated/portal.apply'
 import { Route as AuthenticatedPortalGradesRouteImport } from './routes/_authenticated/portal.grades'
 import { Route as AuthenticatedPortalNotificationsRouteImport } from './routes/_authenticated/portal.notifications'
 import { Route as AuthenticatedPortalProfileRouteImport } from './routes/_authenticated/portal.profile'
 import { Route as AuthenticatedPortalScheduleRouteImport } from './routes/_authenticated/portal.schedule'
+import { Route as AuthenticatedPortalTutorRouteImport } from './routes/_authenticated/portal.tutor'
 import { Route as AuthenticatedPortalVerifyRouteImport } from './routes/_authenticated/portal.verify'
 
 const IndexRoute = IndexRouteImport.update({
@@ -71,6 +73,12 @@ const AuthenticatedPortalIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedPortalRoute,
   } as any)
+const AuthenticatedPortalAdminRoute =
+  AuthenticatedPortalAdminRouteImport.update({
+    id: '/admin',
+    path: '/admin',
+    getParentRoute: () => AuthenticatedPortalRoute,
+  } as any)
 const AuthenticatedPortalApplicationsRoute =
   AuthenticatedPortalApplicationsRouteImport.update({
     id: '/applications',
@@ -107,6 +115,12 @@ const AuthenticatedPortalScheduleRoute =
     path: '/schedule',
     getParentRoute: () => AuthenticatedPortalRoute,
   } as any)
+const AuthenticatedPortalTutorRoute =
+  AuthenticatedPortalTutorRouteImport.update({
+    id: '/tutor',
+    path: '/tutor',
+    getParentRoute: () => AuthenticatedPortalRoute,
+  } as any)
 const AuthenticatedPortalVerifyRoute =
   AuthenticatedPortalVerifyRouteImport.update({
     id: '/verify',
@@ -122,12 +136,14 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
   '/portal': typeof AuthenticatedPortalRouteWithChildren
+  '/portal/admin': typeof AuthenticatedPortalAdminRoute
   '/portal/applications': typeof AuthenticatedPortalApplicationsRoute
   '/portal/apply': typeof AuthenticatedPortalApplyRoute
   '/portal/grades': typeof AuthenticatedPortalGradesRoute
   '/portal/notifications': typeof AuthenticatedPortalNotificationsRoute
   '/portal/profile': typeof AuthenticatedPortalProfileRoute
   '/portal/schedule': typeof AuthenticatedPortalScheduleRoute
+  '/portal/tutor': typeof AuthenticatedPortalTutorRoute
   '/portal/verify': typeof AuthenticatedPortalVerifyRoute
   '/portal/': typeof AuthenticatedPortalIndexRoute
 }
@@ -138,12 +154,14 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
+  '/portal/admin': typeof AuthenticatedPortalAdminRoute
   '/portal/applications': typeof AuthenticatedPortalApplicationsRoute
   '/portal/apply': typeof AuthenticatedPortalApplyRoute
   '/portal/grades': typeof AuthenticatedPortalGradesRoute
   '/portal/notifications': typeof AuthenticatedPortalNotificationsRoute
   '/portal/profile': typeof AuthenticatedPortalProfileRoute
   '/portal/schedule': typeof AuthenticatedPortalScheduleRoute
+  '/portal/tutor': typeof AuthenticatedPortalTutorRoute
   '/portal/verify': typeof AuthenticatedPortalVerifyRoute
   '/portal': typeof AuthenticatedPortalIndexRoute
 }
@@ -157,12 +175,14 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
   '/_authenticated/portal': typeof AuthenticatedPortalRouteWithChildren
+  '/_authenticated/portal/admin': typeof AuthenticatedPortalAdminRoute
   '/_authenticated/portal/applications': typeof AuthenticatedPortalApplicationsRoute
   '/_authenticated/portal/apply': typeof AuthenticatedPortalApplyRoute
   '/_authenticated/portal/grades': typeof AuthenticatedPortalGradesRoute
   '/_authenticated/portal/notifications': typeof AuthenticatedPortalNotificationsRoute
   '/_authenticated/portal/profile': typeof AuthenticatedPortalProfileRoute
   '/_authenticated/portal/schedule': typeof AuthenticatedPortalScheduleRoute
+  '/_authenticated/portal/tutor': typeof AuthenticatedPortalTutorRoute
   '/_authenticated/portal/verify': typeof AuthenticatedPortalVerifyRoute
   '/_authenticated/portal/': typeof AuthenticatedPortalIndexRoute
 }
@@ -176,12 +196,14 @@ export interface FileRouteTypes {
     | '/contact'
     | '/courses'
     | '/portal'
+    | '/portal/admin'
     | '/portal/applications'
     | '/portal/apply'
     | '/portal/grades'
     | '/portal/notifications'
     | '/portal/profile'
     | '/portal/schedule'
+    | '/portal/tutor'
     | '/portal/verify'
     | '/portal/'
   fileRoutesByTo: FileRoutesByTo
@@ -192,12 +214,14 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/courses'
+    | '/portal/admin'
     | '/portal/applications'
     | '/portal/apply'
     | '/portal/grades'
     | '/portal/notifications'
     | '/portal/profile'
     | '/portal/schedule'
+    | '/portal/tutor'
     | '/portal/verify'
     | '/portal'
   id:
@@ -210,12 +234,14 @@ export interface FileRouteTypes {
     | '/contact'
     | '/courses'
     | '/_authenticated/portal'
+    | '/_authenticated/portal/admin'
     | '/_authenticated/portal/applications'
     | '/_authenticated/portal/apply'
     | '/_authenticated/portal/grades'
     | '/_authenticated/portal/notifications'
     | '/_authenticated/portal/profile'
     | '/_authenticated/portal/schedule'
+    | '/_authenticated/portal/tutor'
     | '/_authenticated/portal/verify'
     | '/_authenticated/portal/'
   fileRoutesById: FileRoutesById
@@ -295,6 +321,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPortalIndexRouteImport
       parentRoute: typeof AuthenticatedPortalRoute
     }
+    '/_authenticated/portal/admin': {
+      id: '/_authenticated/portal/admin'
+      path: '/admin'
+      fullPath: '/portal/admin'
+      preLoaderRoute: typeof AuthenticatedPortalAdminRouteImport
+      parentRoute: typeof AuthenticatedPortalRoute
+    }
     '/_authenticated/portal/applications': {
       id: '/_authenticated/portal/applications'
       path: '/applications'
@@ -337,6 +370,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPortalScheduleRouteImport
       parentRoute: typeof AuthenticatedPortalRoute
     }
+    '/_authenticated/portal/tutor': {
+      id: '/_authenticated/portal/tutor'
+      path: '/tutor'
+      fullPath: '/portal/tutor'
+      preLoaderRoute: typeof AuthenticatedPortalTutorRouteImport
+      parentRoute: typeof AuthenticatedPortalRoute
+    }
     '/_authenticated/portal/verify': {
       id: '/_authenticated/portal/verify'
       path: '/verify'
@@ -348,23 +388,27 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedPortalRouteChildren {
+  AuthenticatedPortalAdminRoute: typeof AuthenticatedPortalAdminRoute
   AuthenticatedPortalApplicationsRoute: typeof AuthenticatedPortalApplicationsRoute
   AuthenticatedPortalApplyRoute: typeof AuthenticatedPortalApplyRoute
   AuthenticatedPortalGradesRoute: typeof AuthenticatedPortalGradesRoute
   AuthenticatedPortalNotificationsRoute: typeof AuthenticatedPortalNotificationsRoute
   AuthenticatedPortalProfileRoute: typeof AuthenticatedPortalProfileRoute
   AuthenticatedPortalScheduleRoute: typeof AuthenticatedPortalScheduleRoute
+  AuthenticatedPortalTutorRoute: typeof AuthenticatedPortalTutorRoute
   AuthenticatedPortalVerifyRoute: typeof AuthenticatedPortalVerifyRoute
   AuthenticatedPortalIndexRoute: typeof AuthenticatedPortalIndexRoute
 }
 
 const AuthenticatedPortalRouteChildren: AuthenticatedPortalRouteChildren = {
+  AuthenticatedPortalAdminRoute: AuthenticatedPortalAdminRoute,
   AuthenticatedPortalApplicationsRoute: AuthenticatedPortalApplicationsRoute,
   AuthenticatedPortalApplyRoute: AuthenticatedPortalApplyRoute,
   AuthenticatedPortalGradesRoute: AuthenticatedPortalGradesRoute,
   AuthenticatedPortalNotificationsRoute: AuthenticatedPortalNotificationsRoute,
   AuthenticatedPortalProfileRoute: AuthenticatedPortalProfileRoute,
   AuthenticatedPortalScheduleRoute: AuthenticatedPortalScheduleRoute,
+  AuthenticatedPortalTutorRoute: AuthenticatedPortalTutorRoute,
   AuthenticatedPortalVerifyRoute: AuthenticatedPortalVerifyRoute,
   AuthenticatedPortalIndexRoute: AuthenticatedPortalIndexRoute,
 }

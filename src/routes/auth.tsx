@@ -10,7 +10,7 @@ import { ATECH } from "@/lib/atech";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>) => ({
-    mode: search.mode === "register" ? ("register" as const) : ("login" as const),
+    mode: search['mode'] === "register" ? ("register" as const) : ("login" as const),
   }),
   head: () => ({
     meta: [
