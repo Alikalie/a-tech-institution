@@ -25,6 +25,7 @@ import { Route as AuthenticatedPortalGradesRouteImport } from './routes/_authent
 import { Route as AuthenticatedPortalNotificationsRouteImport } from './routes/_authenticated/portal.notifications'
 import { Route as AuthenticatedPortalProfileRouteImport } from './routes/_authenticated/portal.profile'
 import { Route as AuthenticatedPortalScheduleRouteImport } from './routes/_authenticated/portal.schedule'
+import { Route as AuthenticatedPortalTutorRouteImport } from './routes/_authenticated/portal.tutor'
 import { Route as AuthenticatedPortalVerifyRouteImport } from './routes/_authenticated/portal.verify'
 
 const IndexRoute = IndexRouteImport.update({
@@ -114,6 +115,12 @@ const AuthenticatedPortalScheduleRoute =
     path: '/schedule',
     getParentRoute: () => AuthenticatedPortalRoute,
   } as any)
+const AuthenticatedPortalTutorRoute =
+  AuthenticatedPortalTutorRouteImport.update({
+    id: '/tutor',
+    path: '/tutor',
+    getParentRoute: () => AuthenticatedPortalRoute,
+  } as any)
 const AuthenticatedPortalVerifyRoute =
   AuthenticatedPortalVerifyRouteImport.update({
     id: '/verify',
@@ -136,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/portal/notifications': typeof AuthenticatedPortalNotificationsRoute
   '/portal/profile': typeof AuthenticatedPortalProfileRoute
   '/portal/schedule': typeof AuthenticatedPortalScheduleRoute
+  '/portal/tutor': typeof AuthenticatedPortalTutorRoute
   '/portal/verify': typeof AuthenticatedPortalVerifyRoute
   '/portal/': typeof AuthenticatedPortalIndexRoute
 }
@@ -153,6 +161,7 @@ export interface FileRoutesByTo {
   '/portal/notifications': typeof AuthenticatedPortalNotificationsRoute
   '/portal/profile': typeof AuthenticatedPortalProfileRoute
   '/portal/schedule': typeof AuthenticatedPortalScheduleRoute
+  '/portal/tutor': typeof AuthenticatedPortalTutorRoute
   '/portal/verify': typeof AuthenticatedPortalVerifyRoute
   '/portal': typeof AuthenticatedPortalIndexRoute
 }
@@ -173,6 +182,7 @@ export interface FileRoutesById {
   '/_authenticated/portal/notifications': typeof AuthenticatedPortalNotificationsRoute
   '/_authenticated/portal/profile': typeof AuthenticatedPortalProfileRoute
   '/_authenticated/portal/schedule': typeof AuthenticatedPortalScheduleRoute
+  '/_authenticated/portal/tutor': typeof AuthenticatedPortalTutorRoute
   '/_authenticated/portal/verify': typeof AuthenticatedPortalVerifyRoute
   '/_authenticated/portal/': typeof AuthenticatedPortalIndexRoute
 }
@@ -193,6 +203,7 @@ export interface FileRouteTypes {
     | '/portal/notifications'
     | '/portal/profile'
     | '/portal/schedule'
+    | '/portal/tutor'
     | '/portal/verify'
     | '/portal/'
   fileRoutesByTo: FileRoutesByTo
@@ -210,6 +221,7 @@ export interface FileRouteTypes {
     | '/portal/notifications'
     | '/portal/profile'
     | '/portal/schedule'
+    | '/portal/tutor'
     | '/portal/verify'
     | '/portal'
   id:
@@ -229,6 +241,7 @@ export interface FileRouteTypes {
     | '/_authenticated/portal/notifications'
     | '/_authenticated/portal/profile'
     | '/_authenticated/portal/schedule'
+    | '/_authenticated/portal/tutor'
     | '/_authenticated/portal/verify'
     | '/_authenticated/portal/'
   fileRoutesById: FileRoutesById
@@ -357,6 +370,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPortalScheduleRouteImport
       parentRoute: typeof AuthenticatedPortalRoute
     }
+    '/_authenticated/portal/tutor': {
+      id: '/_authenticated/portal/tutor'
+      path: '/tutor'
+      fullPath: '/portal/tutor'
+      preLoaderRoute: typeof AuthenticatedPortalTutorRouteImport
+      parentRoute: typeof AuthenticatedPortalRoute
+    }
     '/_authenticated/portal/verify': {
       id: '/_authenticated/portal/verify'
       path: '/verify'
@@ -375,6 +395,7 @@ interface AuthenticatedPortalRouteChildren {
   AuthenticatedPortalNotificationsRoute: typeof AuthenticatedPortalNotificationsRoute
   AuthenticatedPortalProfileRoute: typeof AuthenticatedPortalProfileRoute
   AuthenticatedPortalScheduleRoute: typeof AuthenticatedPortalScheduleRoute
+  AuthenticatedPortalTutorRoute: typeof AuthenticatedPortalTutorRoute
   AuthenticatedPortalVerifyRoute: typeof AuthenticatedPortalVerifyRoute
   AuthenticatedPortalIndexRoute: typeof AuthenticatedPortalIndexRoute
 }
@@ -387,6 +408,7 @@ const AuthenticatedPortalRouteChildren: AuthenticatedPortalRouteChildren = {
   AuthenticatedPortalNotificationsRoute: AuthenticatedPortalNotificationsRoute,
   AuthenticatedPortalProfileRoute: AuthenticatedPortalProfileRoute,
   AuthenticatedPortalScheduleRoute: AuthenticatedPortalScheduleRoute,
+  AuthenticatedPortalTutorRoute: AuthenticatedPortalTutorRoute,
   AuthenticatedPortalVerifyRoute: AuthenticatedPortalVerifyRoute,
   AuthenticatedPortalIndexRoute: AuthenticatedPortalIndexRoute,
 }
