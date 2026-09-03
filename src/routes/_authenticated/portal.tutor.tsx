@@ -51,7 +51,10 @@ function TutorPage() {
         },
       }),
     onSuccess: (res) => {
-      if (!res.ok) return toast.error(res.message);
+      if (!res.ok) {
+        toast.error(res.message);
+        return;
+      }
       toast.success(res.message);
       setForm(empty);
       qc.invalidateQueries({ queryKey: ["tutor-students"] });
