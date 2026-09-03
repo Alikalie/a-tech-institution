@@ -190,21 +190,90 @@ export const setUserRole = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-/** Admin view: every account with roles, verification state and student ID. */
+/** Admin view: every account with roles, verification state, student ID and payment code. */
 export const listAccounts = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const [{ data: profiles }, { data: roles }] = await Promise.all([
+    const [{ data: profiles }, { data: roles }, { data: payments }] = await Promise.all([
       supabaseAdmin.from("profiles").select("*").order("created_at", { ascending: false }),
       supabaseAdmin.from("user_roles").select("user_id, role"),
+      supabaseAdmin
+        .from("payments")
+        .select("id, user_id, reference, status, code, paid_at")
+        .order("created_at", { ascending: false }),
     ]);
     return (profiles ?? []).map((p) => ({
       ...p,
       roles: (roles ?? []).filter((r) => r.user_id === p.id).map((r) => r.role as string),
+      payment: (payments ?? []).find((pay) => pay.user_id === p.id) ?? null,
     }));
   });
+
+/** Admin generates (or regenerates) the payment verification code for one account. */
+export const issuePaymentCode = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { userId: string }) => {
+    const userId = String(input?.userId ?? "").trim();
+    if (!userId) throw new Error("Select an account.");
+    return { userId };
+  })
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const code = sixDigitCode();
+    const now = new Date().toISOString();
+
+    const { data: existing } = await supabaseAdmin
+      .from("payments")
+      .select("id, reference")
+      .eq("user_id", data.userId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    let reference = existing?.reference ?? "";
+    if (existing) {
+      const { error } = await supabaseAdmin
+        .from("payments")
+        .update({ status: "paid", code, paid_at: now })
+        .eq("id", existing.id);
+      if (error) throw new Error(error.message);
+    } else {
+      reference = `ATP-${Date.now().toString(36).toUpperCase()}`;
+      const { error } = await supabaseAdmin
+        .from("payments")
+        .insert({ user_id: data.userId, reference, status: "paid", code, paid_at: now });
+      if (error) throw new Error(error.message);
+    }
+
+    await supabaseAdmin.from("notifications").insert({
+      user_id: data.userId,
+      title: "Payment verification code issued",
+      message: `Your A-TECH payment verification code is ${code}. Enter it in the portal to verify your account and unlock the application form.`,
+    });
+    await supabaseAdmin.from("activity_log").insert({
+      actor_id: context.userId,
+      action: "Payment code generated",
+      detail: `Reference ${reference}`,
+    });
+    return { code, reference };
+  });
+
+/** Admin view: all submitted applications. */
+export const listApplications = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin
+      .from("applications")
+      .select("*")
+      .order("submitted_at", { ascending: false });
+    return data ?? [];
+  });
+
 
 /** Tutor uploads a grade against an A-TECH Student ID. */
 export const uploadGrade = createServerFn({ method: "POST" })
