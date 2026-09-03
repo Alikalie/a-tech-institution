@@ -21,6 +21,7 @@ import { Route as AuthenticatedPortalIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedPortalApplicationsRouteImport } from './routes/_authenticated/portal.applications'
 import { Route as AuthenticatedPortalApplyRouteImport } from './routes/_authenticated/portal.apply'
 import { Route as AuthenticatedPortalGradesRouteImport } from './routes/_authenticated/portal.grades'
+import { Route as AuthenticatedPortalNotificationsRouteImport } from './routes/_authenticated/portal.notifications'
 import { Route as AuthenticatedPortalProfileRouteImport } from './routes/_authenticated/portal.profile'
 import { Route as AuthenticatedPortalScheduleRouteImport } from './routes/_authenticated/portal.schedule'
 import { Route as AuthenticatedPortalVerifyRouteImport } from './routes/_authenticated/portal.verify'
@@ -88,6 +89,12 @@ const AuthenticatedPortalGradesRoute =
     path: '/grades',
     getParentRoute: () => AuthenticatedPortalRoute,
   } as any)
+const AuthenticatedPortalNotificationsRoute =
+  AuthenticatedPortalNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedPortalRoute,
+  } as any)
 const AuthenticatedPortalProfileRoute =
   AuthenticatedPortalProfileRouteImport.update({
     id: '/profile',
@@ -118,6 +125,7 @@ export interface FileRoutesByFullPath {
   '/portal/applications': typeof AuthenticatedPortalApplicationsRoute
   '/portal/apply': typeof AuthenticatedPortalApplyRoute
   '/portal/grades': typeof AuthenticatedPortalGradesRoute
+  '/portal/notifications': typeof AuthenticatedPortalNotificationsRoute
   '/portal/profile': typeof AuthenticatedPortalProfileRoute
   '/portal/schedule': typeof AuthenticatedPortalScheduleRoute
   '/portal/verify': typeof AuthenticatedPortalVerifyRoute
@@ -133,6 +141,7 @@ export interface FileRoutesByTo {
   '/portal/applications': typeof AuthenticatedPortalApplicationsRoute
   '/portal/apply': typeof AuthenticatedPortalApplyRoute
   '/portal/grades': typeof AuthenticatedPortalGradesRoute
+  '/portal/notifications': typeof AuthenticatedPortalNotificationsRoute
   '/portal/profile': typeof AuthenticatedPortalProfileRoute
   '/portal/schedule': typeof AuthenticatedPortalScheduleRoute
   '/portal/verify': typeof AuthenticatedPortalVerifyRoute
@@ -151,6 +160,7 @@ export interface FileRoutesById {
   '/_authenticated/portal/applications': typeof AuthenticatedPortalApplicationsRoute
   '/_authenticated/portal/apply': typeof AuthenticatedPortalApplyRoute
   '/_authenticated/portal/grades': typeof AuthenticatedPortalGradesRoute
+  '/_authenticated/portal/notifications': typeof AuthenticatedPortalNotificationsRoute
   '/_authenticated/portal/profile': typeof AuthenticatedPortalProfileRoute
   '/_authenticated/portal/schedule': typeof AuthenticatedPortalScheduleRoute
   '/_authenticated/portal/verify': typeof AuthenticatedPortalVerifyRoute
@@ -169,6 +179,7 @@ export interface FileRouteTypes {
     | '/portal/applications'
     | '/portal/apply'
     | '/portal/grades'
+    | '/portal/notifications'
     | '/portal/profile'
     | '/portal/schedule'
     | '/portal/verify'
@@ -184,6 +195,7 @@ export interface FileRouteTypes {
     | '/portal/applications'
     | '/portal/apply'
     | '/portal/grades'
+    | '/portal/notifications'
     | '/portal/profile'
     | '/portal/schedule'
     | '/portal/verify'
@@ -201,6 +213,7 @@ export interface FileRouteTypes {
     | '/_authenticated/portal/applications'
     | '/_authenticated/portal/apply'
     | '/_authenticated/portal/grades'
+    | '/_authenticated/portal/notifications'
     | '/_authenticated/portal/profile'
     | '/_authenticated/portal/schedule'
     | '/_authenticated/portal/verify'
@@ -303,6 +316,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPortalGradesRouteImport
       parentRoute: typeof AuthenticatedPortalRoute
     }
+    '/_authenticated/portal/notifications': {
+      id: '/_authenticated/portal/notifications'
+      path: '/notifications'
+      fullPath: '/portal/notifications'
+      preLoaderRoute: typeof AuthenticatedPortalNotificationsRouteImport
+      parentRoute: typeof AuthenticatedPortalRoute
+    }
     '/_authenticated/portal/profile': {
       id: '/_authenticated/portal/profile'
       path: '/profile'
@@ -331,6 +351,7 @@ interface AuthenticatedPortalRouteChildren {
   AuthenticatedPortalApplicationsRoute: typeof AuthenticatedPortalApplicationsRoute
   AuthenticatedPortalApplyRoute: typeof AuthenticatedPortalApplyRoute
   AuthenticatedPortalGradesRoute: typeof AuthenticatedPortalGradesRoute
+  AuthenticatedPortalNotificationsRoute: typeof AuthenticatedPortalNotificationsRoute
   AuthenticatedPortalProfileRoute: typeof AuthenticatedPortalProfileRoute
   AuthenticatedPortalScheduleRoute: typeof AuthenticatedPortalScheduleRoute
   AuthenticatedPortalVerifyRoute: typeof AuthenticatedPortalVerifyRoute
@@ -341,6 +362,7 @@ const AuthenticatedPortalRouteChildren: AuthenticatedPortalRouteChildren = {
   AuthenticatedPortalApplicationsRoute: AuthenticatedPortalApplicationsRoute,
   AuthenticatedPortalApplyRoute: AuthenticatedPortalApplyRoute,
   AuthenticatedPortalGradesRoute: AuthenticatedPortalGradesRoute,
+  AuthenticatedPortalNotificationsRoute: AuthenticatedPortalNotificationsRoute,
   AuthenticatedPortalProfileRoute: AuthenticatedPortalProfileRoute,
   AuthenticatedPortalScheduleRoute: AuthenticatedPortalScheduleRoute,
   AuthenticatedPortalVerifyRoute: AuthenticatedPortalVerifyRoute,
