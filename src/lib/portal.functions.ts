@@ -206,22 +206,40 @@ export const decideApplication = createServerFn({ method: "POST" })
     return { status: "accepted" as const, studentId };
   });
 
-/** Admin grants or removes a role (tutor / admin / student). */
+/** Grant or remove a role. Admin/super-admin roles may only be changed by a super administrator. */
 export const setUserRole = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { userId: string; role: "admin" | "tutor" | "student"; grant: boolean }) => ({
-    userId: String(input.userId),
-    role: input.role,
-    grant: Boolean(input.grant),
-  }))
+  .inputValidator(
+    (input: {
+      userId: string;
+      role: "super_admin" | "admin" | "tutor" | "student";
+      grant: boolean;
+    }) => ({
+      userId: String(input.userId),
+      role: input.role,
+      grant: Boolean(input.grant),
+    }),
+  )
   .handler(async ({ data, context }) => {
-    await assertAdmin(context);
+    const elevated = data.role === "admin" || data.role === "super_admin";
+    if (elevated) await assertSuperAdmin(context);
+    else await assertAdmin(context);
+
+    if (data.userId === context.userId && data.role === "super_admin" && !data.grant) {
+      throw new Error("You cannot remove your own super administrator role.");
+    }
+
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     if (data.grant) {
       await supabaseAdmin
         .from("user_roles")
         .upsert({ user_id: data.userId, role: data.role }, { onConflict: "user_id,role" });
-      if (data.role === "tutor" || data.role === "admin") {
+      if (data.role === "super_admin") {
+        await supabaseAdmin
+          .from("user_roles")
+          .upsert({ user_id: data.userId, role: "admin" }, { onConflict: "user_id,role" });
+      }
+      if (data.role !== "student") {
         await supabaseAdmin.from("profiles").update({ verified: true }).eq("id", data.userId);
       }
     } else {
@@ -238,6 +256,24 @@ export const setUserRole = createServerFn({ method: "POST" })
     });
     return { ok: true };
   });
+
+/** Super administrator strips every role from an account (demote to an empty user). */
+export const clearUserRoles = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { userId: string }) => ({ userId: String(input.userId) }))
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context);
+    if (data.userId === context.userId) throw new Error("You cannot demote your own account.");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("user_roles").delete().eq("user_id", data.userId);
+    await supabaseAdmin.from("activity_log").insert({
+      actor_id: context.userId,
+      action: "All roles removed",
+      detail: `Account ${data.userId} demoted to empty user`,
+    });
+    return { ok: true };
+  });
+
 
 /** Admin view: every account with roles, verification state, student ID and payment code. */
 export const listAccounts = createServerFn({ method: "GET" })
