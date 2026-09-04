@@ -1,13 +1,27 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-async function assertAdmin(context: { supabase: { rpc: Function }; userId: string }) {
+type Ctx = { supabase: { rpc: Function }; userId: string };
+
+async function hasRole(context: Ctx, role: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (context.supabase as any).rpc("has_role", {
+  const { data } = await (context.supabase as any).rpc("has_role", {
     _user_id: context.userId,
-    _role: "admin",
+    _role: role,
   });
-  if (error || !data) throw new Error("Forbidden: administrator access required");
+  return Boolean(data);
+}
+
+async function assertAdmin(context: Ctx) {
+  if (!(await hasRole(context, "admin")) && !(await hasRole(context, "super_admin"))) {
+    throw new Error("Forbidden: administrator access required");
+  }
+}
+
+async function assertSuperAdmin(context: Ctx) {
+  if (!(await hasRole(context, "super_admin"))) {
+    throw new Error("Forbidden: super administrator access required");
+  }
 }
 
 function sixDigitCode() {
@@ -23,7 +37,17 @@ export const claimFirstAdmin = createServerFn({ method: "POST" })
     return { claimed: Boolean(data) };
   });
 
-/** Applicant enters the payment code issued by the administrator. */
+/** Any signed-in user may claim super administrator ONLY while none exists. */
+export const claimSuperAdmin = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (context.supabase as any).rpc("claim_super_admin");
+    if (error) throw new Error(error.message);
+    return { claimed: Boolean(data) };
+  });
+
+/** Applicant enters the payment code issued by the administrator, bound to their name. */
 export const verifyPaymentCode = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { code: string }) => {
@@ -41,8 +65,32 @@ export const verifyPaymentCode = createServerFn({ method: "POST" })
       .eq("code", data.code)
       .maybeSingle();
     if (!payment) {
-      return { ok: false, message: "That code doesn't match. Check with A-TECH if you have not received one." };
+      return {
+        ok: false,
+        message:
+          "That code doesn't match an account in your name. Codes are issued to one named applicant only.",
+      };
     }
+    if (payment.code_used) {
+      return { ok: false, message: "That code has already been used and cannot be reused." };
+    }
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("full_name")
+      .eq("id", context.userId)
+      .maybeSingle();
+    const boundName = String(payment.code_name ?? "").trim().toLowerCase();
+    const myName = String(profile?.full_name ?? "").trim().toLowerCase();
+    if (boundName && myName && boundName !== myName) {
+      return {
+        ok: false,
+        message: `This code was issued to ${payment.code_name}. It cannot be used by another applicant.`,
+      };
+    }
+    await supabaseAdmin
+      .from("payments")
+      .update({ code_used: true })
+      .eq("id", payment.id);
     await supabaseAdmin.from("profiles").update({ verified: true }).eq("id", context.userId);
     await supabaseAdmin.from("notifications").insert({
       user_id: context.userId,
@@ -56,6 +104,7 @@ export const verifyPaymentCode = createServerFn({ method: "POST" })
     });
     return { ok: true, message: "Account verified." };
   });
+
 
 /** Admin confirms a payment and the system generates the verification code. */
 export const confirmPayment = createServerFn({ method: "POST" })
