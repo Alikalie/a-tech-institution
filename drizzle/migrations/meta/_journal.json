@@ -15,6 +15,20 @@
       "when": 1788137500705,
       "tag": "0001_portal_helper_functions",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788510906574,
+      "tag": "0002_add_super_admin_role_and_code_binding",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1788510933299,
+      "tag": "0003_super_admin_policies_and_functions",
+      "breakpoints": true
     }
   ]
 }
