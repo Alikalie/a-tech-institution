@@ -286,7 +286,7 @@ export const listAccounts = createServerFn({ method: "GET" })
       supabaseAdmin.from("user_roles").select("user_id, role"),
       supabaseAdmin
         .from("payments")
-        .select("id, user_id, reference, status, code, paid_at")
+        .select("id, user_id, reference, status, code, code_name, code_used, paid_at")
         .order("created_at", { ascending: false }),
     ]);
     return (profiles ?? []).map((p) => ({
@@ -310,6 +310,13 @@ export const issuePaymentCode = createServerFn({ method: "POST" })
     const code = sixDigitCode();
     const now = new Date().toISOString();
 
+    const { data: target } = await supabaseAdmin
+      .from("profiles")
+      .select("full_name, email")
+      .eq("id", data.userId)
+      .maybeSingle();
+    const codeName = String(target?.full_name ?? "").trim() || String(target?.email ?? "");
+
     const { data: existing } = await supabaseAdmin
       .from("payments")
       .select("id, reference")
@@ -322,28 +329,28 @@ export const issuePaymentCode = createServerFn({ method: "POST" })
     if (existing) {
       const { error } = await supabaseAdmin
         .from("payments")
-        .update({ status: "paid", code, paid_at: now })
+        .update({ status: "paid", code, code_name: codeName, code_used: false, paid_at: now, code_issued_at: now })
         .eq("id", existing.id);
       if (error) throw new Error(error.message);
     } else {
       reference = `ATP-${Date.now().toString(36).toUpperCase()}`;
       const { error } = await supabaseAdmin
         .from("payments")
-        .insert({ user_id: data.userId, reference, status: "paid", code, paid_at: now });
+        .insert({ user_id: data.userId, reference, status: "paid", code, code_name: codeName, code_used: false, paid_at: now, code_issued_at: now });
       if (error) throw new Error(error.message);
     }
 
     await supabaseAdmin.from("notifications").insert({
       user_id: data.userId,
       title: "Payment verification code issued",
-      message: `Your A-TECH payment verification code is ${code}. Enter it in the portal to verify your account and unlock the application form.`,
+      message: `Your A-TECH payment verification code is ${code}. It is issued to ${codeName} only and cannot be used by anyone else. Enter it in the portal to verify your account and unlock the application form.`,
     });
     await supabaseAdmin.from("activity_log").insert({
       actor_id: context.userId,
       action: "Payment code generated",
-      detail: `Reference ${reference}`,
+      detail: `Reference ${reference} issued to ${codeName}`,
     });
-    return { code, reference };
+    return { code, reference, codeName };
   });
 
 /** Admin view: all submitted applications. */
