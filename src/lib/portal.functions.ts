@@ -465,3 +465,279 @@ export const listStudents = createServerFn({ method: "GET" })
       .order("student_id");
     return data ?? [];
   });
+
+/* ------------------------------------------------------------------ */
+/* Administration console                                              */
+/* ------------------------------------------------------------------ */
+
+/** Who am I, in administrative terms. */
+export const adminIdentity = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => ({
+    userId: context.userId,
+    isAdmin: (await hasRole(context, "admin")) || (await hasRole(context, "super_admin")),
+    isSuperAdmin: await hasRole(context, "super_admin"),
+  }));
+
+/** Aggregated counters for the administration dashboard. */
+export const adminOverview = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [profiles, roles, apps, payments, grades, courses, schedules] = await Promise.all([
+      supabaseAdmin.from("profiles").select("id, student_id, verified"),
+      supabaseAdmin.from("user_roles").select("user_id, role"),
+      supabaseAdmin.from("applications").select("status"),
+      supabaseAdmin.from("payments").select("status, code, code_used"),
+      supabaseAdmin.from("grades").select("id"),
+      supabaseAdmin.from("courses").select("code"),
+      supabaseAdmin.from("schedules").select("id"),
+    ]);
+    const p = profiles.data ?? [];
+    const r = roles.data ?? [];
+    const a = apps.data ?? [];
+    const pay = payments.data ?? [];
+    return {
+      accounts: p.length,
+      verified: p.filter((x) => x.verified).length,
+      students: p.filter((x) => x.student_id).length,
+      tutors: r.filter((x) => x.role === "tutor").length,
+      admins: r.filter((x) => x.role === "admin").length,
+      superAdmins: r.filter((x) => x.role === "super_admin").length,
+      applications: a.length,
+      pending: a.filter((x) => x.status === "submitted").length,
+      accepted: a.filter((x) => x.status === "accepted").length,
+      rejected: a.filter((x) => x.status === "rejected").length,
+      codesIssued: pay.filter((x) => x.code).length,
+      codesUsed: pay.filter((x) => x.code_used).length,
+      paid: pay.filter((x) => x.status === "paid").length,
+      grades: grades.data?.length ?? 0,
+      courses: courses.data?.length ?? 0,
+      schedules: schedules.data?.length ?? 0,
+    };
+  });
+
+export const listPayments = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin
+      .from("payments")
+      .select("*")
+      .order("created_at", { ascending: false });
+    return data ?? [];
+  });
+
+export const listGradesAdmin = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin
+      .from("grades")
+      .select("*")
+      .order("created_at", { ascending: false });
+    return data ?? [];
+  });
+
+export const listActivity = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin
+      .from("activity_log")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(300);
+    return data ?? [];
+  });
+
+export const listNotificationsAdmin = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin
+      .from("notifications")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(200);
+    return data ?? [];
+  });
+
+/** Create or update a course/programme. */
+export const saveCourse = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { code: string; name: string; duration: string; sortOrder: number }) => {
+    const code = String(input.code ?? "").trim().toUpperCase();
+    const name = String(input.name ?? "").trim();
+    if (!code) throw new Error("Course code is required.");
+    if (!name) throw new Error("Course name is required.");
+    return {
+      code,
+      name,
+      duration: String(input.duration ?? "").trim() || "—",
+      sortOrder: Number(input.sortOrder) || 0,
+    };
+  })
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("courses")
+      .upsert(
+        { code: data.code, name: data.name, duration: data.duration, sort_order: data.sortOrder },
+        { onConflict: "code" },
+      );
+    if (error) throw new Error(error.message);
+    await supabaseAdmin.from("activity_log").insert({
+      actor_id: context.userId,
+      action: "Course saved",
+      detail: `${data.code} — ${data.name}`,
+    });
+    return { ok: true };
+  });
+
+export const deleteCourse = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { code: string }) => ({ code: String(input.code) }))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("courses").delete().eq("code", data.code);
+    if (error) throw new Error("This course is in use and cannot be removed.");
+    await supabaseAdmin.from("activity_log").insert({
+      actor_id: context.userId,
+      action: "Course removed",
+      detail: data.code,
+    });
+    return { ok: true };
+  });
+
+/** Create a timetable entry. */
+export const saveSchedule = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (input: { courseCode: string; title: string; dayLabel: string; timeLabel: string; venue: string }) => {
+      if (!input.courseCode) throw new Error("Select a course.");
+      if (!String(input.title ?? "").trim()) throw new Error("Session title is required.");
+      return {
+        courseCode: String(input.courseCode),
+        title: String(input.title).trim(),
+        dayLabel: String(input.dayLabel ?? "").trim() || "Monday",
+        timeLabel: String(input.timeLabel ?? "").trim() || "09:00 – 11:00",
+        venue: String(input.venue ?? "").trim(),
+      };
+    },
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const row: Record<string, string> = {
+      course_code: data.courseCode,
+      title: data.title,
+      day_label: data.dayLabel,
+      time_label: data.timeLabel,
+    };
+    if (data.venue) row['venue'] = data.venue;
+    const { error } = await supabaseAdmin.from("schedules").insert(row);
+    if (error) throw new Error(error.message);
+    await supabaseAdmin.from("activity_log").insert({
+      actor_id: context.userId,
+      action: "Timetable entry added",
+      detail: `${data.courseCode} — ${data.title}`,
+    });
+    return { ok: true };
+  });
+
+export const deleteSchedule = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { id: string }) => ({ id: String(input.id) }))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("schedules").delete().eq("id", data.id);
+    return { ok: true };
+  });
+
+/** Send a notification to one account, a role group, or everybody. */
+export const sendNotification = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { audience: string; userId?: string; title: string; message: string }) => {
+    const message = String(input.message ?? "").trim();
+    if (!message) throw new Error("Write a message.");
+    return {
+      audience: String(input.audience ?? "all"),
+      userId: String(input.userId ?? ""),
+      title: String(input.title ?? "").trim() || "A-TECH",
+      message,
+    };
+  })
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    let ids: string[] = [];
+    if (data.audience === "user") {
+      if (!data.userId) throw new Error("Select an account.");
+      ids = [data.userId];
+    } else if (data.audience === "students") {
+      const { data: rows } = await supabaseAdmin
+        .from("profiles")
+        .select("id")
+        .not("student_id", "is", null);
+      ids = (rows ?? []).map((r) => r.id);
+    } else if (data.audience === "tutors") {
+      const { data: rows } = await supabaseAdmin
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "tutor");
+      ids = (rows ?? []).map((r) => r.user_id);
+    } else {
+      const { data: rows } = await supabaseAdmin.from("profiles").select("id");
+      ids = (rows ?? []).map((r) => r.id);
+    }
+    if (!ids.length) return { ok: true, sent: 0 };
+
+    const { error } = await supabaseAdmin
+      .from("notifications")
+      .insert(ids.map((id) => ({ user_id: id, title: data.title, message: data.message })));
+    if (error) throw new Error(error.message);
+    await supabaseAdmin.from("activity_log").insert({
+      actor_id: context.userId,
+      action: "Notification sent",
+      detail: `${data.audience} (${ids.length}) — ${data.title}`,
+    });
+    return { ok: true, sent: ids.length };
+  });
+
+/** Super administrator issues an A-TECH Student ID manually. */
+export const issueStudentId = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { userId: string }) => ({ userId: String(input.userId) }))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("student_id")
+      .eq("id", data.userId)
+      .maybeSingle();
+    if (profile?.student_id) return { studentId: profile.student_id };
+    const { data: generated, error } = await supabaseAdmin.rpc("next_student_id");
+    if (error) throw new Error(error.message);
+    const studentId = generated as string;
+    await supabaseAdmin.from("profiles").update({ student_id: studentId }).eq("id", data.userId);
+    await supabaseAdmin
+      .from("user_roles")
+      .upsert({ user_id: data.userId, role: "student" }, { onConflict: "user_id,role" });
+    await supabaseAdmin.from("activity_log").insert({
+      actor_id: context.userId,
+      action: "Student ID issued",
+      detail: studentId,
+    });
+    return { studentId };
+  });
