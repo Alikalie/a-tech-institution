@@ -207,6 +207,9 @@ export type Database = {
       payments: {
         Row: {
           code: string | null
+          code_issued_at: string | null
+          code_name: string | null
+          code_used: boolean
           created_at: string
           id: string
           paid_at: string | null
@@ -216,6 +219,9 @@ export type Database = {
         }
         Insert: {
           code?: string | null
+          code_issued_at?: string | null
+          code_name?: string | null
+          code_used?: boolean
           created_at?: string
           id?: string
           paid_at?: string | null
@@ -225,6 +231,9 @@ export type Database = {
         }
         Update: {
           code?: string | null
+          code_issued_at?: string | null
+          code_name?: string | null
+          code_used?: boolean
           created_at?: string
           id?: string
           paid_at?: string | null
@@ -339,7 +348,7 @@ export type Database = {
       next_student_id: { Args: never; Returns: string }
     }
     Enums: {
-      app_role: "admin" | "tutor" | "student" | "applicant"
+      app_role: "admin" | "tutor" | "student" | "applicant" | "super_admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -467,7 +476,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "tutor", "student", "applicant"],
+      app_role: ["admin", "tutor", "student", "applicant", "super_admin"],
     },
   },
 } as const
