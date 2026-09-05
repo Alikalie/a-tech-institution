@@ -153,31 +153,6 @@ function Dashboard() {
         </Button>
       )}
 
-      {role !== "admin" && (
-        <section className="card-elevated p-5">
-          <h2 className="text-sm font-semibold">Set up the administrator account</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            If A-TECH has no administrator yet, the first account can claim it. This stops working
-            as soon as one administrator exists.
-          </p>
-          <Button
-            className="mt-3"
-            variant="outline"
-            size="sm"
-            onClick={async () => {
-              const res = await claimFirstAdmin();
-              if (res.claimed) {
-                toast.success("You are now the A-TECH administrator.");
-                refresh();
-              } else {
-                toast.error("An administrator already exists.");
-              }
-            }}
-          >
-            Claim administrator
-          </Button>
-        </section>
-      )}
     </div>
   );
 }
