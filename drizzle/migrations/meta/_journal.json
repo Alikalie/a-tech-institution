@@ -29,6 +29,20 @@
       "when": 1788510933299,
       "tag": "0003_super_admin_policies_and_functions",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1788579863029,
+      "tag": "0004_application_extended_fields_and_documents",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1788579883702,
+      "tag": "0005_application_documents_storage_policies",
+      "breakpoints": true
     }
   ]
 }

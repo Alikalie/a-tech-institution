@@ -64,7 +64,7 @@ function AuthPage() {
           .filter(Boolean)
           .join(" ");
         if (!fullName) throw new Error("Enter your name.");
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email: form.email.trim(),
           password: form.password,
           options: {
@@ -78,8 +78,15 @@ function AuthPage() {
           },
         });
         if (error) throw error;
-        toast.success("Account created. Check your email to confirm, then sign in.");
-        navigate({ to: "/auth", search: { mode: "login" } });
+        if (!data.session) {
+          const signIn = await supabase.auth.signInWithPassword({
+            email: form.email.trim(),
+            password: form.password,
+          });
+          if (signIn.error) throw signIn.error;
+        }
+        toast.success("Account created. Welcome to A-TECH.");
+        navigate({ to: "/portal" });
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email: form.email.trim(),
