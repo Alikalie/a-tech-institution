@@ -41,63 +41,212 @@ export type Database = {
         }
         Relationships: []
       }
-      applications: {
+      application_documents: {
         Row: {
-          address: string | null
-          course_code: string
-          dob: string | null
-          email: string | null
-          full_name: string
-          gender: string | null
-          guardian_name: string | null
-          guardian_phone: string | null
+          application_id: string | null
+          doc_type: string
+          file_name: string
           id: string
-          phone: string | null
-          previous_education: string | null
-          reference: string
-          reviewed_at: string | null
-          status: string
-          student_id: string | null
-          submitted_at: string
+          storage_path: string
+          uploaded_at: string
           user_id: string
         }
         Insert: {
-          address?: string | null
-          course_code: string
-          dob?: string | null
-          email?: string | null
-          full_name: string
-          gender?: string | null
-          guardian_name?: string | null
-          guardian_phone?: string | null
+          application_id?: string | null
+          doc_type: string
+          file_name: string
           id?: string
-          phone?: string | null
-          previous_education?: string | null
-          reference: string
-          reviewed_at?: string | null
-          status?: string
-          student_id?: string | null
-          submitted_at?: string
+          storage_path: string
+          uploaded_at?: string
           user_id: string
         }
         Update: {
+          application_id?: string | null
+          doc_type?: string
+          file_name?: string
+          id?: string
+          storage_path?: string
+          uploaded_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_documents_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      applications: {
+        Row: {
+          address: string | null
+          blood_group: string | null
+          city: string | null
+          computer_level: string | null
+          country: string | null
+          course_code: string
+          declaration: boolean
+          disability: string | null
+          disability_details: string | null
+          district: string | null
+          dob: string | null
+          education_level: string | null
+          email: string | null
+          emergency_phone: string | null
+          father_name: string | null
+          first_name: string | null
+          full_name: string
+          gender: string | null
+          guarantor_address: string | null
+          guarantor_first_name: string | null
+          guarantor_last_name: string | null
+          guarantor_phone: string | null
+          guarantor_relationship: string | null
+          guarantor_whatsapp: string | null
+          guardian_name: string | null
+          guardian_phone: string | null
+          has_laptop: boolean | null
+          id: string
+          id_number: string | null
+          kin_address: string | null
+          kin_email: string | null
+          kin_name: string | null
+          kin_phone: string | null
+          kin_relationship: string | null
+          last_name: string | null
+          marital_status: string | null
+          middle_name: string | null
+          mother_name: string | null
+          nationality: string | null
+          payment_method: string | null
+          phone: string | null
+          preferred_time: string | null
+          prefix: string | null
+          previous_education: string | null
+          province: string | null
+          qualification: string | null
+          reference: string
+          reviewed_at: string | null
+          status: string
+          street: string | null
+          student_id: string | null
+          submitted_at: string
+          user_id: string
+          whatsapp: string | null
+        }
+        Insert: {
           address?: string | null
-          course_code?: string
+          blood_group?: string | null
+          city?: string | null
+          computer_level?: string | null
+          country?: string | null
+          course_code: string
+          declaration?: boolean
+          disability?: string | null
+          disability_details?: string | null
+          district?: string | null
           dob?: string | null
+          education_level?: string | null
           email?: string | null
-          full_name?: string
+          emergency_phone?: string | null
+          father_name?: string | null
+          first_name?: string | null
+          full_name: string
           gender?: string | null
+          guarantor_address?: string | null
+          guarantor_first_name?: string | null
+          guarantor_last_name?: string | null
+          guarantor_phone?: string | null
+          guarantor_relationship?: string | null
+          guarantor_whatsapp?: string | null
           guardian_name?: string | null
           guardian_phone?: string | null
+          has_laptop?: boolean | null
           id?: string
+          id_number?: string | null
+          kin_address?: string | null
+          kin_email?: string | null
+          kin_name?: string | null
+          kin_phone?: string | null
+          kin_relationship?: string | null
+          last_name?: string | null
+          marital_status?: string | null
+          middle_name?: string | null
+          mother_name?: string | null
+          nationality?: string | null
+          payment_method?: string | null
           phone?: string | null
+          preferred_time?: string | null
+          prefix?: string | null
           previous_education?: string | null
+          province?: string | null
+          qualification?: string | null
+          reference: string
+          reviewed_at?: string | null
+          status?: string
+          street?: string | null
+          student_id?: string | null
+          submitted_at?: string
+          user_id: string
+          whatsapp?: string | null
+        }
+        Update: {
+          address?: string | null
+          blood_group?: string | null
+          city?: string | null
+          computer_level?: string | null
+          country?: string | null
+          course_code?: string
+          declaration?: boolean
+          disability?: string | null
+          disability_details?: string | null
+          district?: string | null
+          dob?: string | null
+          education_level?: string | null
+          email?: string | null
+          emergency_phone?: string | null
+          father_name?: string | null
+          first_name?: string | null
+          full_name?: string
+          gender?: string | null
+          guarantor_address?: string | null
+          guarantor_first_name?: string | null
+          guarantor_last_name?: string | null
+          guarantor_phone?: string | null
+          guarantor_relationship?: string | null
+          guarantor_whatsapp?: string | null
+          guardian_name?: string | null
+          guardian_phone?: string | null
+          has_laptop?: boolean | null
+          id?: string
+          id_number?: string | null
+          kin_address?: string | null
+          kin_email?: string | null
+          kin_name?: string | null
+          kin_phone?: string | null
+          kin_relationship?: string | null
+          last_name?: string | null
+          marital_status?: string | null
+          middle_name?: string | null
+          mother_name?: string | null
+          nationality?: string | null
+          payment_method?: string | null
+          phone?: string | null
+          preferred_time?: string | null
+          prefix?: string | null
+          previous_education?: string | null
+          province?: string | null
+          qualification?: string | null
           reference?: string
           reviewed_at?: string | null
           status?: string
+          street?: string | null
           student_id?: string | null
           submitted_at?: string
           user_id?: string
+          whatsapp?: string | null
         }
         Relationships: [
           {
