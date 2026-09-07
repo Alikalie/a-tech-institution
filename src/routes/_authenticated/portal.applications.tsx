@@ -23,15 +23,29 @@ function ApplicationsPage() {
     queryKey: ["my-applications", portal?.userId],
     enabled: Boolean(portal?.userId),
     queryFn: async () => {
-      const [apps, courses] = await Promise.all([
+      const [apps, courses, documents] = await Promise.all([
         supabase
           .from("applications")
           .select("*")
           .eq("user_id", portal!.userId)
           .order("submitted_at", { ascending: false }),
         supabase.from("courses").select("*").order("sort_order"),
+        supabase
+          .from("application_documents")
+          .select("application_id, doc_type, storage_path")
+          .eq("doc_type", "Passport photograph"),
       ]);
-      return { apps: (apps.data ?? []) as ApplicationRecord[], courses: (courses.data ?? []) as Course[] };
+      const photos: Record<string, string> = {};
+      await Promise.all(
+        (documents.data ?? []).map(async (item) => {
+          if (!item.application_id) return;
+          const signed = await supabase.storage
+            .from("application-documents")
+            .createSignedUrl(item.storage_path, 300);
+          if (signed.data?.signedUrl) photos[item.application_id] = signed.data.signedUrl;
+        }),
+      );
+      return { apps: (apps.data ?? []) as ApplicationRecord[], courses: (courses.data ?? []) as Course[], photos };
     },
   });
 
@@ -76,13 +90,13 @@ function ApplicationsPage() {
               </p>
             )}
             <div className="mt-4 flex flex-wrap gap-2">
-              <Button size="sm" onClick={() => downloadApplicationPDF(app, course?.name ?? app.course_code)}>
+              <Button size="sm" onClick={() => downloadApplicationPDF(app, course?.name ?? app.course_code, data?.photos[app.id])}>
                 Download application PDF
               </Button>
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => downloadApplicationDoc(app, course?.name ?? app.course_code)}
+                onClick={() => downloadApplicationDoc(app, course?.name ?? app.course_code, data?.photos[app.id])}
               >
                 Download Word (.doc)
               </Button>
