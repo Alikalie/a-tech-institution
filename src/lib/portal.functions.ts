@@ -636,13 +636,13 @@ export const saveSchedule = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const row: Record<string, string> = {
+    const row = {
       course_code: data.courseCode,
       title: data.title,
       day_label: data.dayLabel,
       time_label: data.timeLabel,
+      venue: data.venue,
     };
-    if (data.venue) row['venue'] = data.venue;
     const { error } = await supabaseAdmin.from("schedules").insert(row);
     if (error) throw new Error(error.message);
     await supabaseAdmin.from("activity_log").insert({

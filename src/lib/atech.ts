@@ -213,6 +213,26 @@ function overviewHeader(doc: any, ref: string, logo: string | null, photo: strin
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+function letterHeader(doc: any, title: string) {
+  doc.setFillColor(31, 56, 100);
+  doc.rect(0, 0, 210, 26, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("times", "bold");
+  doc.setFontSize(16);
+  doc.text("A-TECH COMPUTER TRAINING", 14, 12);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.setTextColor(228, 196, 88);
+  doc.text(`${ATECH.tagline} — ${ATECH.address}`, 14, 18);
+  doc.setTextColor(20, 24, 28);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(13);
+  doc.text(title, 14, 36);
+  doc.setDrawColor(201, 162, 39);
+  doc.line(14, 40, 196, 40);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function footer(doc: any, ref: string, page?: number) {
   doc.setFontSize(8);
   doc.setTextColor(120, 120, 120);
@@ -261,7 +281,7 @@ export async function downloadApplicationPDF(app: ApplicationRecord, courseName:
 
 export async function downloadAcceptancePDF(app: ApplicationRecord, course: Course) {
   const doc = await newDoc();
-  header(doc, "LETTER OF ACCEPTANCE");
+  letterHeader(doc, "LETTER OF ACCEPTANCE");
   let y = 55;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(11);
