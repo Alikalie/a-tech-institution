@@ -87,6 +87,7 @@ export type Database = {
           computer_level: string | null
           country: string | null
           course_code: string
+          custom_fields: Json
           declaration: boolean
           disability: string | null
           disability_details: string | null
@@ -143,6 +144,7 @@ export type Database = {
           computer_level?: string | null
           country?: string | null
           course_code: string
+          custom_fields?: Json
           declaration?: boolean
           disability?: string | null
           disability_details?: string | null
@@ -199,6 +201,7 @@ export type Database = {
           computer_level?: string | null
           country?: string | null
           course_code?: string
+          custom_fields?: Json
           declaration?: boolean
           disability?: string | null
           disability_details?: string | null
@@ -261,20 +264,73 @@ export type Database = {
       courses: {
         Row: {
           code: string
+          description: string
           duration: string
           name: string
+          programme_id: string | null
           sort_order: number
         }
         Insert: {
           code: string
+          description?: string
           duration: string
           name: string
+          programme_id?: string | null
           sort_order?: number
         }
         Update: {
           code?: string
+          description?: string
           duration?: string
           name?: string
+          programme_id?: string | null
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "courses_programme_id_fkey"
+            columns: ["programme_id"]
+            isOneToOne: false
+            referencedRelation: "programmes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      form_fields: {
+        Row: {
+          active: boolean
+          created_at: string
+          field_key: string
+          field_type: string
+          id: string
+          label: string
+          options: string
+          required: boolean
+          section: string
+          sort_order: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          field_key: string
+          field_type?: string
+          id?: string
+          label: string
+          options?: string
+          required?: boolean
+          section?: string
+          sort_order?: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          field_key?: string
+          field_type?: string
+          id?: string
+          label?: string
+          options?: string
+          required?: boolean
+          section?: string
           sort_order?: number
         }
         Relationships: []
@@ -325,6 +381,78 @@ export type Database = {
             referencedColumns: ["code"]
           },
         ]
+      }
+      id_cards: {
+        Row: {
+          dob: string | null
+          full_name: string
+          id: string
+          issued_at: string
+          issued_by: string | null
+          photo_path: string | null
+          programme: string
+          student_id: string
+          user_id: string
+          valid_until: string
+        }
+        Insert: {
+          dob?: string | null
+          full_name: string
+          id?: string
+          issued_at?: string
+          issued_by?: string | null
+          photo_path?: string | null
+          programme?: string
+          student_id: string
+          user_id: string
+          valid_until: string
+        }
+        Update: {
+          dob?: string | null
+          full_name?: string
+          id?: string
+          issued_at?: string
+          issued_by?: string | null
+          photo_path?: string | null
+          programme?: string
+          student_id?: string
+          user_id?: string
+          valid_until?: string
+        }
+        Relationships: []
+      }
+      nav_links: {
+        Row: {
+          created_at: string
+          id: string
+          is_cta: boolean
+          label: string
+          location: string
+          sort_order: number
+          url: string
+          visible: boolean
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_cta?: boolean
+          label: string
+          location?: string
+          sort_order?: number
+          url: string
+          visible?: boolean
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_cta?: boolean
+          label?: string
+          location?: string
+          sort_order?: number
+          url?: string
+          visible?: boolean
+        }
+        Relationships: []
       }
       notifications: {
         Row: {
@@ -422,6 +550,30 @@ export type Database = {
         }
         Relationships: []
       }
+      programmes: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          id?: string
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          name?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       schedules: {
         Row: {
           course_code: string
@@ -460,6 +612,24 @@ export type Database = {
           },
         ]
       }
+      site_content: {
+        Row: {
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value?: string
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -495,6 +665,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_staff: { Args: { _uid: string }; Returns: boolean }
       next_student_id: { Args: never; Returns: string }
     }
     Enums: {
