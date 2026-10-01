@@ -241,7 +241,7 @@ function CrudTable<T extends Record<string, unknown> & { id: string }>({
   const save = useMutation({
     mutationFn: async () => {
       const payload = { ...draft };
-      delete payload.id; delete payload.created_at;
+      delete payload["id"]; delete payload["created_at"];
       const q = editing
         ? supabase.from(table).update(payload as never).eq("id", editing)
         : supabase.from(table).insert(payload as never);
