@@ -43,6 +43,13 @@
       "when": 1788579883702,
       "tag": "0005_application_documents_storage_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790891673410,
+      "tag": "0006_cms_programmes_fields_idcards",
+      "breakpoints": true
     }
   ]
 }
