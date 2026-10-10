@@ -273,11 +273,11 @@ export async function downloadApplicationPDF(app: ApplicationRecord, courseName:
 }
 
 export type LetterSettings = {
-  body?: string;
-  signatoryName?: string;
-  signatoryTitle?: string;
-  phone?: string;
-  email?: string;
+  body?: string | undefined;
+  signatoryName?: string | undefined;
+  signatoryTitle?: string | undefined;
+  phone?: string | undefined;
+  email?: string | undefined;
 };
 
 export function fillTemplate(tpl: string, app: ApplicationRecord, course: Course) {
@@ -293,8 +293,8 @@ export function fillTemplate(tpl: string, app: ApplicationRecord, course: Course
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function poly(doc: any, pts: [number, number][], rgb: [number, number, number]) {
   doc.setFillColor(...rgb);
-  const [x0, y0] = pts[0];
-  const rel = pts.slice(1).map((p, i) => [p[0] - pts[i][0], p[1] - pts[i][1]]);
+  const [x0, y0] = pts[0]!;
+  const rel = pts.slice(1).map((p, i) => [p[0] - pts[i]![0], p[1] - pts[i]![1]]);
   doc.lines(rel, x0, y0, [1, 1], "F", true);
 }
 

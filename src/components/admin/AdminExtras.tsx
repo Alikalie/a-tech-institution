@@ -479,7 +479,7 @@ export function CoursesAdmin() {
               <tr key={c.code} className="border-b">
                 <td className="py-2 font-mono text-xs">{c.code}</td><td>{c.name}</td><td>{pname(c.programme_id)}</td><td>{c.duration}</td><td>{c.price || "-"}</td><td>{c.active ? "Active" : "Inactive"}</td>
                 <td className="whitespace-nowrap text-right">
-                  <Button size="sm" variant="ghost" onClick={() => { setF(c); const m = c.duration.match(/^(\d+)\s*(\w+)/); if (m) { setAmount(m[1]); setUnit(/year/i.test(m[2]) ? "Years" : /week/i.test(m[2]) ? "Weeks" : "Months"); } }}>Edit</Button>
+                  <Button size="sm" variant="ghost" onClick={() => { setF(c); const m = c.duration.match(/^(\d+)\s*(\w+)/); if (m) { setAmount(m[1] ?? "1"); setUnit(/year/i.test(m[2] ?? "") ? "Years" : /week/i.test(m[2] ?? "") ? "Weeks" : "Months"); } }}>Edit</Button>
                   <Button size="sm" variant="ghost" className="text-destructive" onClick={() => confirm(`Delete ${c.code}?`) && del.mutate(c.code)}>Delete</Button>
                 </td>
               </tr>
