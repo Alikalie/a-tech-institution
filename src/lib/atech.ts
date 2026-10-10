@@ -1,4 +1,17 @@
 import logoAsset from "@/assets/atech-logo.jpg.asset.json";
+import { supabase } from "@/integrations/supabase/client";
+
+export async function loadLetterSettings() {
+  const { data } = await supabase.from("site_content").select("key, value");
+  const m = Object.fromEntries((data ?? []).map((r) => [r.key, r.value]));
+  return {
+    body: m["acceptance_body"],
+    signatoryName: m["signatory_name"],
+    signatoryTitle: m["signatory_title"],
+    phone: m["contact_phone"],
+    email: m["contact_email"],
+  };
+}
 
 export const ATECH = {
   name: "A-TECH Computer Training",
@@ -6,7 +19,7 @@ export const ATECH = {
   address: "Moriba Town, Impere Junction",
 } as const;
 
-export type Course = { code: string; name: string; duration: string };
+export type Course = { code: string; name: string; duration: string; price?: string | null };
 
 export type ApplicationRecord = {
   id: string;
@@ -213,26 +226,6 @@ function overviewHeader(doc: any, ref: string, logo: string | null, photo: strin
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function letterHeader(doc: any, title: string) {
-  doc.setFillColor(31, 56, 100);
-  doc.rect(0, 0, 210, 26, "F");
-  doc.setTextColor(255, 255, 255);
-  doc.setFont("times", "bold");
-  doc.setFontSize(16);
-  doc.text("A-TECH COMPUTER TRAINING", 14, 12);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  doc.setTextColor(228, 196, 88);
-  doc.text(`${ATECH.tagline} — ${ATECH.address}`, 14, 18);
-  doc.setTextColor(20, 24, 28);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(13);
-  doc.text(title, 14, 36);
-  doc.setDrawColor(201, 162, 39);
-  doc.line(14, 40, 196, 40);
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function footer(doc: any, ref: string, page?: number) {
   doc.setFontSize(8);
   doc.setTextColor(120, 120, 120);
@@ -279,38 +272,141 @@ export async function downloadApplicationPDF(app: ApplicationRecord, courseName:
   doc.save(`ATECH_Application_${app.reference}.pdf`);
 }
 
-export async function downloadAcceptancePDF(app: ApplicationRecord, course: Course) {
-  const doc = await newDoc();
-  letterHeader(doc, "LETTER OF ACCEPTANCE");
-  let y = 55;
+export type LetterSettings = {
+  body?: string | undefined;
+  signatoryName?: string | undefined;
+  signatoryTitle?: string | undefined;
+  phone?: string | undefined;
+  email?: string | undefined;
+};
+
+export function fillTemplate(tpl: string, app: ApplicationRecord, course: Course) {
+  return tpl
+    .replace(/\{name\}/g, app.full_name)
+    .replace(/\{course\}/g, course.name)
+    .replace(/\{duration\}/g, course.duration || "-")
+    .replace(/\{price\}/g, course.price?.trim() || "To be confirmed")
+    .replace(/\{student_id\}/g, app.student_id ?? "-")
+    .replace(/\{reference\}/g, app.reference);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function poly(doc: any, pts: [number, number][], rgb: [number, number, number]) {
+  doc.setFillColor(...rgb);
+  const [x0, y0] = pts[0]!;
+  const rel = pts.slice(1).map((p, i) => [p[0] - pts[i]![0], p[1] - pts[i]![1]]);
+  doc.lines(rel, x0, y0, [1, 1], "F", true);
+}
+
+const NAVY: [number, number, number] = [31, 56, 100];
+const GOLD: [number, number, number] = [201, 162, 39];
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function corporateLetterhead(doc: any, logo: string | null, s: LetterSettings) {
+  poly(doc, [[0, 12], [92, 12], [82, 34], [0, 34]], NAVY);
+  poly(doc, [[96, 12], [210, 12], [210, 34], [86, 34]], GOLD);
+  poly(doc, [[84, 12], [95, 12], [85, 34], [80, 34]], [255, 255, 255]);
+  addImage(doc, logo, 8, 14, 18, 18);
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(15);
+  doc.text("A-TECH", 30, 22);
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
+  doc.setFontSize(6.5);
+  doc.setTextColor(228, 196, 88);
+  doc.text(ATECH.tagline.toUpperCase(), 30, 27);
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  doc.text("Address", 100, 19);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7.5);
+  doc.text(ATECH.address, 100, 24);
+  doc.text("Sierra Leone", 100, 28.5);
+  doc.text(`Tel: ${s.phone || "+23277864684"}`, 150, 21);
+  doc.text(`Email: ${s.email || "fofanahalikalie0@gmail.com"}`, 150, 26);
+  // footer bars
+  poly(doc, [[0, 284], [150, 284], [145, 290], [0, 290]], GOLD);
+  poly(doc, [[154, 284], [210, 284], [210, 290], [149, 290]], NAVY);
+}
+
+export async function downloadAcceptancePDF(app: ApplicationRecord, course: Course, settings: LetterSettings = {}) {
+  const doc = await newDoc();
+  const logo = await imageDataUrl(logoAsset.url);
+  corporateLetterhead(doc, logo, settings);
+
   doc.setTextColor(20, 24, 28);
-  const body = [
-    `Dear ${app.full_name},`,
-    "",
-    "Congratulations! We are pleased to inform you that your application to A-TECH",
-    "Computer Training has been ACCEPTED for the course:",
-    "",
-    `     ${course.name} (${course.duration})`,
-    "",
-    `Your A-TECH Student ID has been generated as: ${app.student_id ?? "-"}`,
-    "",
-    "Please keep this ID safe — you will use it to track your grades and results,",
-    "view your class schedule, and receive notifications throughout the programme.",
-    "Orientation details will be shared in your notifications inbox.",
-    "",
-    "We look forward to having you in class.",
-    "",
-    "The A-TECH Team",
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(12);
+  doc.text(app.full_name, 18, 50);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(110, 110, 110);
+  doc.text("Admitted Student", 18, 54.5);
+  const meta: [string, string][] = [
+    ["ID", app.student_id ?? "-"],
+    ["E", app.email ?? "-"],
+    ["P", app.phone ?? "-"],
   ];
-  body.forEach((l) => {
-    doc.text(l, 14, y);
-    y += 7;
+  meta.forEach(([k, v], i) => {
+    doc.setTextColor(...GOLD);
+    doc.setFont("helvetica", "bold");
+    doc.text(k, 18, 60 + i * 4.5);
+    doc.setTextColor(60, 60, 60);
+    doc.setFont("helvetica", "normal");
+    doc.text(`:  ${v}`, 25, 60 + i * 4.5);
   });
-  footer(doc, app.student_id ?? app.reference);
+  doc.text(`Date: ${new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" })}`, 192, 69, { align: "right" });
+
+  doc.setTextColor(...NAVY);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(13);
+  doc.text("LETTER OF ACCEPTANCE", 105, 84, { align: "center" });
+  doc.setDrawColor(...GOLD);
+  doc.setLineWidth(0.6);
+  doc.line(70, 87, 140, 87);
+
+  doc.setTextColor(30, 30, 30);
+  doc.setFontSize(10.5);
+  doc.setFont("helvetica", "normal");
+  let y = 98;
+  doc.text(`Dear ${app.full_name},`, 18, y);
+  y += 9;
+  const body = fillTemplate(settings.body?.trim() || DEFAULT_ACCEPTANCE, app, course);
+  for (const para of body.split(/\n/)) {
+    if (!para.trim()) { y += 3; continue; }
+    const lines = doc.splitTextToSize(para, 174);
+    doc.text(lines, 18, y, { lineHeightFactor: 1.5 });
+    y += lines.length * 5.6;
+  }
+  y = Math.max(y + 12, 225);
+  doc.text("Yours faithfully,", 18, y);
+  doc.setFont("times", "italic");
+  doc.setFontSize(18);
+  doc.setTextColor(...NAVY);
+  doc.text(settings.signatoryName || "A-TECH Administration", 18, y + 14);
+  doc.setDrawColor(150, 150, 150);
+  doc.setLineWidth(0.2);
+  doc.line(18, y + 17, 80, y + 17);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(30, 30, 30);
+  doc.text(settings.signatoryName || "A-TECH Administration", 18, y + 22);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8.5);
+  doc.setTextColor(110, 110, 110);
+  doc.text(settings.signatoryTitle || "Director", 18, y + 26.5);
+
   doc.save(`ATECH_Acceptance_${(app.student_id ?? app.reference).replace(/\//g, "-")}.pdf`);
 }
+
+export const DEFAULT_ACCEPTANCE = `Congratulations! We are pleased to inform you that your application to A-TECH has been ACCEPTED for the course {course}.
+
+Course duration: {duration}
+Course fee: {price}
+Your A-TECH Student ID: {student_id}
+
+We look forward to having you in class.`;
 
 /* ------------------------ Word (.doc) export ------------------------ */
 

@@ -29,6 +29,9 @@ import {
   sendNotification,
 } from "@/lib/portal.functions";
 import { formatDate, statusTone } from "@/lib/atech";
+import {
+  AdminCharts, IdCardsPanel, NavLinksPanel, ProgrammesPanel, FormFieldsPanel, SiteContentPanel, CoursesAdmin, LetterEditorPanel,
+} from "@/components/admin/AdminExtras";
 
 export const Route = createFileRoute("/_authenticated/portal/admin")({
   component: AdminPage,
@@ -44,12 +47,17 @@ const SECTIONS = [
   "Payments",
   "Applications",
   "Student IDs",
+  "ID cards",
+  "Acceptance letter",
   "Grades",
   "Results",
   "Timetable",
   "Notifications",
   "Documents",
   "Reports",
+  "Website pages",
+  "Navigation",
+  "Registration fields",
   "Users",
   "Permissions",
   "Audit logs",
@@ -209,7 +217,32 @@ function AdminPage() {
     (accounts.data ?? []).find((a) => a.id === id)?.full_name || id.slice(0, 8);
 
   return (
-    <div className="space-y-6">
+    <div className="grid gap-6 lg:grid-cols-[200px_minmax(0,1fr)]">
+      <aside className="lg:sticky lg:top-4 lg:self-start">
+        <select
+          aria-label="Admin section"
+          className="h-10 w-full rounded-md border bg-background px-3 text-sm lg:hidden"
+          value={section}
+          onChange={(e) => setSection(e.target.value as Section)}
+        >
+          {SECTIONS.map((s) => <option key={s}>{s}</option>)}
+        </select>
+        <nav className="card-elevated hidden max-h-[80vh] flex-col gap-0.5 overflow-y-auto p-2 lg:flex">
+          {SECTIONS.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setSection(s)}
+              className={`rounded-md px-3 py-1.5 text-left text-sm transition-colors ${
+                section === s ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
+            >
+              {s}
+            </button>
+          ))}
+        </nav>
+      </aside>
+      <div className="min-w-0 space-y-6">
       <header>
         <h1 className="gold-rule pb-2 text-2xl">Administration</h1>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -218,23 +251,6 @@ function AdminPage() {
             : "Administrator console."}
         </p>
       </header>
-
-      <nav className="flex flex-wrap gap-1">
-        {SECTIONS.map((s) => (
-          <button
-            key={s}
-            type="button"
-            onClick={() => setSection(s)}
-            className={`rounded-md px-3 py-1.5 text-xs transition-colors ${
-              section === s
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {s}
-          </button>
-        ))}
-      </nav>
 
       {["Applicants", "Students", "Tutors", "Users", "Permissions", "Student IDs"].includes(
         section,
@@ -263,6 +279,7 @@ function AdminPage() {
             <Stat label="Courses" value={overview.data?.courses ?? 0} />
             <Stat label="Results recorded" value={overview.data?.grades ?? 0} />
           </div>
+          <AdminCharts />
           <Panel title="Recent activity">
             <ul className="space-y-2 text-sm">
               {(activity.data ?? []).slice(0, 8).map((a) => (
@@ -446,29 +463,13 @@ function AdminPage() {
         </Panel>
       )}
 
-      {(section === "Courses" || section === "Programmes") && (
-        <CoursesPanel
-          courses={courses.data ?? []}
-          onSave={async (v) => {
-            try {
-              await saveCourseFn({ data: v });
-              toast.success("Course saved.");
-              refreshAll();
-            } catch (e) {
-              toast.error((e as Error).message);
-            }
-          }}
-          onDelete={async (code) => {
-            try {
-              await deleteCourseFn({ data: { code } });
-              toast.success("Course removed.");
-              refreshAll();
-            } catch (e) {
-              toast.error((e as Error).message);
-            }
-          }}
-        />
-      )}
+      {section === "Courses" && <CoursesAdmin />}
+      {section === "Programmes" && <ProgrammesPanel />}
+      {section === "ID cards" && <IdCardsPanel />}
+      {section === "Acceptance letter" && <LetterEditorPanel />}
+      {section === "Website pages" && <SiteContentPanel />}
+      {section === "Navigation" && <NavLinksPanel />}
+      {section === "Registration fields" && <FormFieldsPanel />}
 
       {section === "Payments" && (
         <Panel title={`Payments (${payments.data?.length ?? 0})`}>
@@ -718,6 +719,7 @@ function AdminPage() {
           </Button>
         </Panel>
       )}
+      </div>
     </div>
   );
 }

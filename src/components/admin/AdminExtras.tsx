@@ -409,3 +409,128 @@ export function SiteContentPanel() {
     </Box>
   );
 }
+
+/* ----------------------------- Courses with price & duration ----------------------------- */
+type CourseFull = { code: string; name: string; duration: string; price: string; sort_order: number; programme_id: string | null; description: string; active: boolean };
+const emptyCourse: CourseFull = { code: "", name: "", duration: "", price: "", sort_order: 0, programme_id: null, description: "", active: true };
+
+export function CoursesAdmin() {
+  const inv = useInvalidate();
+  const { data } = useQuery({
+    queryKey: ["admin-courses-full"],
+    queryFn: async () => {
+      const [c, p] = await Promise.all([
+        supabase.from("courses").select("*").order("sort_order"),
+        supabase.from("programmes").select("id, name").order("sort_order"),
+      ]);
+      return { courses: (c.data ?? []) as CourseFull[], programmes: p.data ?? [] };
+    },
+  });
+  const [f, setF] = useState<CourseFull>(emptyCourse);
+  const [amount, setAmount] = useState("3");
+  const [unit, setUnit] = useState("Months");
+  const save = useMutation({
+    mutationFn: async () => {
+      if (!f.code.trim() || !f.name.trim()) throw new Error("Code and name are required");
+      const duration = amount ? `${amount} ${Number(amount) === 1 ? unit.replace(/s$/, "") : unit}` : f.duration;
+      const { error } = await supabase.from("courses").upsert({ ...f, code: f.code.trim().toUpperCase(), duration }, { onConflict: "code" });
+      if (error) throw error;
+    },
+    onSuccess: () => { toast.success("Course saved"); setF(emptyCourse); inv("admin-courses-full", "admin-courses", "public-courses"); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const del = useMutation({
+    mutationFn: async (code: string) => { const { error } = await supabase.from("courses").delete().eq("code", code); if (error) throw error; },
+    onSuccess: () => { toast.success("Course deleted"); inv("admin-courses-full", "public-courses"); },
+    onError: (e: Error) => toast.error(`${e.message} (courses with applications cannot be deleted — mark inactive instead)`),
+  });
+  const pname = (id: string | null) => data?.programmes.find((p) => p.id === id)?.name ?? "-";
+  return (
+    <Box title={`Courses (${data?.courses.length ?? 0})`}>
+      <form className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
+        <label className="text-xs"><span className="mb-1 block text-muted-foreground">Code</span><Input value={f.code} onChange={(e) => setF({ ...f, code: e.target.value })} /></label>
+        <label className="text-xs sm:col-span-1 lg:col-span-2"><span className="mb-1 block text-muted-foreground">Course name</span><Input value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></label>
+        <label className="text-xs"><span className="mb-1 block text-muted-foreground">Course price (e.g. NLe 1,500)</span><Input value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} /></label>
+        <label className="text-xs"><span className="mb-1 block text-muted-foreground">Duration</span>
+          <div className="flex gap-2">
+            <Input type="number" min={1} value={amount} onChange={(e) => setAmount(e.target.value)} className="w-20" />
+            <select className="h-9 flex-1 rounded-md border bg-background px-2 text-sm" value={unit} onChange={(e) => setUnit(e.target.value)}>
+              {["Weeks", "Months", "Years"].map((u) => <option key={u}>{u}</option>)}
+            </select>
+          </div>
+        </label>
+        <label className="text-xs"><span className="mb-1 block text-muted-foreground">Programme</span>
+          <select className="h-9 w-full rounded-md border bg-background px-2 text-sm" value={f.programme_id ?? ""} onChange={(e) => setF({ ...f, programme_id: e.target.value || null })}>
+            <option value="">None</option>
+            {(data?.programmes ?? []).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+        </label>
+        <label className="text-xs"><span className="mb-1 block text-muted-foreground">Order</span><Input type="number" value={f.sort_order} onChange={(e) => setF({ ...f, sort_order: Number(e.target.value) })} /></label>
+        <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={f.active} onChange={(e) => setF({ ...f, active: e.target.checked })} /> Active (open for applications)</label>
+        <label className="text-xs sm:col-span-2 lg:col-span-4"><span className="mb-1 block text-muted-foreground">Description</span><Textarea rows={2} value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} /></label>
+        <div className="flex gap-2"><Button type="submit" size="sm" disabled={save.isPending}>Save course</Button>
+          <Button type="button" size="sm" variant="ghost" onClick={() => setF(emptyCourse)}>Clear</Button></div>
+      </form>
+      <div className="mt-4 overflow-x-auto">
+        <table className="w-full min-w-[640px] text-sm">
+          <thead><tr className="border-b text-left text-xs uppercase text-muted-foreground"><th className="py-2">Code</th><th>Name</th><th>Programme</th><th>Duration</th><th>Price</th><th>Status</th><th /></tr></thead>
+          <tbody>
+            {(data?.courses ?? []).map((c) => (
+              <tr key={c.code} className="border-b">
+                <td className="py-2 font-mono text-xs">{c.code}</td><td>{c.name}</td><td>{pname(c.programme_id)}</td><td>{c.duration}</td><td>{c.price || "-"}</td><td>{c.active ? "Active" : "Inactive"}</td>
+                <td className="whitespace-nowrap text-right">
+                  <Button size="sm" variant="ghost" onClick={() => { setF(c); const m = c.duration.match(/^(\d+)\s*(\w+)/); if (m) { setAmount(m[1] ?? "1"); setUnit(/year/i.test(m[2] ?? "") ? "Years" : /week/i.test(m[2] ?? "") ? "Weeks" : "Months"); } }}>Edit</Button>
+                  <Button size="sm" variant="ghost" className="text-destructive" onClick={() => confirm(`Delete ${c.code}?`) && del.mutate(c.code)}>Delete</Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Box>
+  );
+}
+
+/* ----------------------------- Acceptance letter editor ----------------------------- */
+export function LetterEditorPanel() {
+  const inv = useInvalidate();
+  const { data } = useQuery({
+    queryKey: ["site-content-letter"],
+    queryFn: async () => Object.fromEntries(((await supabase.from("site_content").select("*").in("key", ["acceptance_body", "signatory_name", "signatory_title"])).data ?? []).map((r) => [r.key, r.value])) as Record<string, string>,
+  });
+  const [v, setV] = useState<Record<string, string>>({});
+  const m = { ...(data ?? {}), ...v };
+  const save = useMutation({
+    mutationFn: async () => {
+      const rows = Object.entries(v).map(([key, value]) => ({ key, value, updated_at: new Date().toISOString() }));
+      if (rows.length) { const { error } = await supabase.from("site_content").upsert(rows); if (error) throw error; }
+    },
+    onSuccess: () => { toast.success("Acceptance letter updated"); setV({}); inv("site-content-letter"); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  async function preview() {
+    const { downloadAcceptancePDF } = await import("@/lib/atech");
+    const { data: c } = await supabase.from("courses").select("*").order("sort_order").limit(1).maybeSingle();
+    await downloadAcceptancePDF(
+      { id: "x", reference: "APP-SAMPLE", course_code: c?.code ?? "", full_name: "Sample Student", dob: null, gender: null, phone: "+232 00 000 000", email: "student@example.com", address: null, guardian_name: null, guardian_phone: null, previous_education: null, status: "accepted", student_id: "ATECH/2026/0000", submitted_at: new Date().toISOString() },
+      { code: c?.code ?? "", name: c?.name ?? "Sample course", duration: c?.duration ?? "3 Months", price: c?.price ?? "" },
+      { body: m["acceptance_body"], signatoryName: m["signatory_name"], signatoryTitle: m["signatory_title"] },
+    );
+  }
+  return (
+    <Box title="Acceptance letter">
+      <p className="mb-3 text-sm text-muted-foreground">
+        Placeholders: <code>{"{name}"}</code> <code>{"{course}"}</code> <code>{"{duration}"}</code> <code>{"{price}"}</code> <code>{"{student_id}"}</code> <code>{"{reference}"}</code>. Course price and duration come from each course in the Courses section.
+      </p>
+      <Textarea rows={12} value={m["acceptance_body"] ?? ""} onChange={(e) => setV({ ...v, acceptance_body: e.target.value })} />
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <label className="text-xs"><span className="mb-1 block text-muted-foreground">Signatory name</span><Input value={m["signatory_name"] ?? ""} onChange={(e) => setV({ ...v, signatory_name: e.target.value })} /></label>
+        <label className="text-xs"><span className="mb-1 block text-muted-foreground">Signatory title</span><Input value={m["signatory_title"] ?? ""} onChange={(e) => setV({ ...v, signatory_title: e.target.value })} /></label>
+      </div>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Button size="sm" disabled={save.isPending} onClick={() => save.mutate()}>Save letter</Button>
+        <Button size="sm" variant="outline" onClick={preview}>Download sample letter</Button>
+      </div>
+    </Box>
+  );
+}
