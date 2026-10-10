@@ -263,26 +263,32 @@ export type Database = {
       }
       courses: {
         Row: {
+          active: boolean
           code: string
           description: string
           duration: string
           name: string
+          price: string
           programme_id: string | null
           sort_order: number
         }
         Insert: {
+          active?: boolean
           code: string
           description?: string
           duration: string
           name: string
+          price?: string
           programme_id?: string | null
           sort_order?: number
         }
         Update: {
+          active?: boolean
           code?: string
           description?: string
           duration?: string
           name?: string
+          price?: string
           programme_id?: string | null
           sort_order?: number
         }
