@@ -3,11 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { usePortal } from "@/hooks/usePortal";
+import { downloadIdCard, type IdCard } from "@/lib/idcard";
 import {
   downloadAcceptancePDF,
   downloadApplicationDoc,
   downloadApplicationPDF,
   formatDate,
+  loadLetterSettings,
   statusTone,
   type ApplicationRecord,
   type Course,
@@ -45,7 +47,8 @@ function ApplicationsPage() {
           if (signed.data?.signedUrl) photos[item.application_id] = signed.data.signedUrl;
         }),
       );
-      return { apps: (apps.data ?? []) as ApplicationRecord[], courses: (courses.data ?? []) as Course[], photos };
+      const card = await supabase.from("id_cards").select("*").eq("user_id", portal!.userId).maybeSingle();
+      return { card: (card.data ?? null) as IdCard | null, apps: (apps.data ?? []) as ApplicationRecord[], courses: (courses.data ?? []) as Course[], photos };
     },
   });
 
@@ -59,6 +62,16 @@ function ApplicationsPage() {
           Download your application form or acceptance letter at any time.
         </p>
       </div>
+
+      {data?.card && (
+        <div className="card-elevated flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <h2 className="text-lg font-semibold">My student ID card</h2>
+            <p className="text-xs text-muted-foreground">{data.card.student_id} · valid until {formatDate(data.card.valid_until)}</p>
+          </div>
+          <Button size="sm" onClick={() => downloadIdCard(data.card!)}>Download / print ID card</Button>
+        </div>
+      )}
 
       {apps.length === 0 && (
         <div className="card-elevated p-6">
@@ -101,7 +114,7 @@ function ApplicationsPage() {
                 Download Word (.doc)
               </Button>
               {app.status === "accepted" && course && (
-                <Button size="sm" variant="secondary" onClick={() => downloadAcceptancePDF(app, course)}>
+                <Button size="sm" variant="secondary" onClick={async () => downloadAcceptancePDF(app, course, await loadLetterSettings())}>
                   Download acceptance letter
                 </Button>
               )}

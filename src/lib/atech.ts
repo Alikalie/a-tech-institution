@@ -1,4 +1,17 @@
 import logoAsset from "@/assets/atech-logo.jpg.asset.json";
+import { supabase } from "@/integrations/supabase/client";
+
+export async function loadLetterSettings() {
+  const { data } = await supabase.from("site_content").select("key, value");
+  const m = Object.fromEntries((data ?? []).map((r) => [r.key, r.value]));
+  return {
+    body: m["acceptance_body"],
+    signatoryName: m["signatory_name"],
+    signatoryTitle: m["signatory_title"],
+    phone: m["contact_phone"],
+    email: m["contact_email"],
+  };
+}
 
 export const ATECH = {
   name: "A-TECH Computer Training",
@@ -210,26 +223,6 @@ function overviewHeader(doc: any, ref: string, logo: string | null, photo: strin
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
   doc.text(`Application Code: ${ref}`, 105, 47, { align: "center" });
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function letterHeader(doc: any, title: string) {
-  doc.setFillColor(31, 56, 100);
-  doc.rect(0, 0, 210, 26, "F");
-  doc.setTextColor(255, 255, 255);
-  doc.setFont("times", "bold");
-  doc.setFontSize(16);
-  doc.text("A-TECH COMPUTER TRAINING", 14, 12);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  doc.setTextColor(228, 196, 88);
-  doc.text(`${ATECH.tagline} — ${ATECH.address}`, 14, 18);
-  doc.setTextColor(20, 24, 28);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(13);
-  doc.text(title, 14, 36);
-  doc.setDrawColor(201, 162, 39);
-  doc.line(14, 40, 196, 40);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
