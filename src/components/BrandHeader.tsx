@@ -1,4 +1,4 @@
-import logo from "@/assets/atech-logo.jpg.asset.json";
+const logo = { url: "/atech-mark.jpg" };
 import { ATECH } from "@/lib/atech";
 
 export function BrandLogo({ size = 40 }: { size?: number }) {

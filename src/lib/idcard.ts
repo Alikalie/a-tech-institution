@@ -1,4 +1,4 @@
-import logoAsset from "@/assets/atech-logo.jpg.asset.json";
+const logoAsset = { url: "/atech-mark.jpg" };
 import { supabase } from "@/integrations/supabase/client";
 
 export type IdCard = {
