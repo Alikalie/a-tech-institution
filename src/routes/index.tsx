@@ -57,7 +57,7 @@ function Landing() {
                 {ATECH.tagline}
               </p>
               <h1 className="mt-4 font-display text-4xl leading-tight font-bold text-primary-foreground md:text-6xl">
-                Train. Apply. Graduate with A-TECH.
+                Train. Apply.<br />Graduate with <span className="text-accent">A&#8209;TECH</span>.
               </h1>
               <p className="mt-5 max-w-xl text-primary-foreground/80">
                 The official A-TECH course application and student management portal. Apply online,
@@ -65,7 +65,7 @@ function Landing() {
                 and timetable in one place.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <Button asChild size="lg" variant="secondary" className="font-semibold">
+                <Button asChild size="lg" className="bg-accent font-semibold text-accent-foreground hover:bg-accent/90">
                   <Link to="/auth" search={{ mode: "register" }}>
                     Apply Now
                   </Link>
@@ -143,7 +143,7 @@ function Landing() {
         <section className="mx-auto max-w-6xl px-5 pb-16">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <h2 className="gold-rule pb-2 text-2xl">Courses on offer</h2>
-            <Link to="/courses" className="text-sm font-semibold text-accent hover:underline">
+            <Link to="/courses" className="text-sm font-semibold text-primary hover:underline">
               View all programmes →
             </Link>
           </div>
@@ -167,7 +167,7 @@ function Landing() {
                 and submit your course application online.
               </p>
             </div>
-            <Button asChild size="lg">
+            <Button asChild size="lg" className="bg-accent font-semibold text-accent-foreground hover:bg-accent/90">
               <Link to="/auth" search={{ mode: "register" }}>
                 Apply Now
               </Link>

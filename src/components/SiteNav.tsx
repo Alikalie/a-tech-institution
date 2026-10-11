@@ -38,7 +38,7 @@ export function SiteNav() {
               {l.label}
             </Link>
           ))}
-          <Button asChild size="sm" variant="secondary" className="ml-2 font-semibold">
+          <Button asChild size="sm" className="ml-2 bg-accent font-semibold text-accent-foreground hover:bg-accent/90">
             <Link to="/auth" search={{ mode: "register" }}>
               Apply Now
             </Link>

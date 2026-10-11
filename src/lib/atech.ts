@@ -1,4 +1,4 @@
-import logoAsset from "@/assets/atech-logo.jpg.asset.json";
+const logoAsset = { url: "/atech-mark.jpg" };
 import { supabase } from "@/integrations/supabase/client";
 
 export async function loadLetterSettings() {
@@ -201,7 +201,7 @@ function addImage(doc: any, data: string | null, x: number, y: number, w: number
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function overviewHeader(doc: any, ref: string, logo: string | null, photo: string | null) {
-  addImage(doc, logo, 15, 10, 24, 24);
+  addImage(doc, logo, 14, 11, 26, 22);
   if (!addImage(doc, photo, 169, 9, 25, 30)) {
     doc.setDrawColor(150, 150, 150);
     doc.rect(169, 9, 25, 30);
@@ -298,36 +298,46 @@ function poly(doc: any, pts: [number, number][], rgb: [number, number, number]) 
   doc.lines(rel, x0, y0, [1, 1], "F", true);
 }
 
-const NAVY: [number, number, number] = [31, 56, 100];
-const GOLD: [number, number, number] = [201, 162, 39];
+const NAVY: [number, number, number] = [30, 91, 216];
+const GOLD: [number, number, number] = [245, 184, 0];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function corporateLetterhead(doc: any, logo: string | null, s: LetterSettings) {
-  poly(doc, [[0, 12], [92, 12], [82, 34], [0, 34]], NAVY);
-  poly(doc, [[96, 12], [210, 12], [210, 34], [86, 34]], GOLD);
-  poly(doc, [[84, 12], [95, 12], [85, 34], [80, 34]], [255, 255, 255]);
-  addImage(doc, logo, 8, 14, 18, 18);
+  // white logo panel (left) + blue contact band (right) with yellow accent stripe
+  addImage(doc, logo, 12, 9, 28, 24);
+  doc.setTextColor(...NAVY);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(17);
+  doc.text("A-TECH", 43, 20);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7);
+  doc.setTextColor(70, 80, 100);
+  doc.text(ATECH.tagline.toUpperCase(), 43, 25.5);
+  poly(doc, [[112, 8], [210, 8], [210, 34], [100, 34]], NAVY);
+  poly(doc, [[104, 34], [210, 34], [210, 37], [103, 37]], GOLD);
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(15);
-  doc.text("A-TECH", 30, 22);
+  doc.setFontSize(8.5);
+  doc.text("Address", 114, 16);
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(6.5);
-  doc.setTextColor(228, 196, 88);
-  doc.text(ATECH.tagline.toUpperCase(), 30, 27);
+  doc.setFontSize(7.2);
+  doc.text(ATECH.address, 114, 21);
+  doc.text("Sierra Leone", 114, 25.5);
+  doc.setTextColor(255, 220, 110);
+  doc.text("Tel", 158, 16);
+  doc.text("Email", 158, 25.5);
   doc.setTextColor(255, 255, 255);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(9);
-  doc.text("Address", 100, 19);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(7.5);
-  doc.text(ATECH.address, 100, 24);
-  doc.text("Sierra Leone", 100, 28.5);
-  doc.text(`Tel: ${s.phone || "+23277864684"}`, 150, 21);
-  doc.text(`Email: ${s.email || "fofanahalikalie0@gmail.com"}`, 150, 26);
+  doc.text(s.phone || "+23277864684", 158, 20);
+  doc.text(s.email || "fofanahalikalie0@gmail.com", 158, 29.5);
+  doc.setDrawColor(225, 230, 240);
+  doc.setLineWidth(0.3);
+  doc.line(12, 41, 198, 41);
   // footer bars
-  poly(doc, [[0, 284], [150, 284], [145, 290], [0, 290]], GOLD);
-  poly(doc, [[154, 284], [210, 284], [210, 290], [149, 290]], NAVY);
+  poly(doc, [[0, 285], [140, 285], [134, 291], [0, 291]], NAVY);
+  poly(doc, [[144, 285], [210, 285], [210, 291], [138, 291]], GOLD);
+  doc.setFontSize(7);
+  doc.setTextColor(120, 120, 120);
+  doc.text(`${ATECH.name}  |  ${ATECH.address}`, 105, 281, { align: "center" });
 }
 
 export async function downloadAcceptancePDF(app: ApplicationRecord, course: Course, settings: LetterSettings = {}) {
@@ -338,11 +348,11 @@ export async function downloadAcceptancePDF(app: ApplicationRecord, course: Cour
   doc.setTextColor(20, 24, 28);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(12);
-  doc.text(app.full_name, 18, 50);
+  doc.text(app.full_name, 18, 52);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(110, 110, 110);
-  doc.text("Admitted Student", 18, 54.5);
+  doc.text("Admitted Student", 18, 56.5);
   const meta: [string, string][] = [
     ["ID", app.student_id ?? "-"],
     ["E", app.email ?? "-"],
@@ -351,12 +361,12 @@ export async function downloadAcceptancePDF(app: ApplicationRecord, course: Cour
   meta.forEach(([k, v], i) => {
     doc.setTextColor(...GOLD);
     doc.setFont("helvetica", "bold");
-    doc.text(k, 18, 60 + i * 4.5);
+    doc.text(k, 18, 62 + i * 4.5);
     doc.setTextColor(60, 60, 60);
     doc.setFont("helvetica", "normal");
-    doc.text(`:  ${v}`, 25, 60 + i * 4.5);
+    doc.text(`:  ${v}`, 25, 62 + i * 4.5);
   });
-  doc.text(`Date: ${new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" })}`, 192, 69, { align: "right" });
+  doc.text(`Date: ${new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" })}`, 192, 71, { align: "right" });
 
   doc.setTextColor(...NAVY);
   doc.setFont("helvetica", "bold");

@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { downloadIdCard, type IdCard } from "@/lib/idcard";
 
 const NAVY = "hsl(var(--primary))";
-const COLORS = ["#1F3864", "#C9A227", "#2E6FB7", "#7A8CA8", "#E0B84A", "#3C5A8C"];
+const COLORS = ["#1E5BD8", "#F5B800", "#5B8DEF", "#0B3A8F", "#FFD54A", "#9DB8F2"];
 
 function Box({ title, children }: { title: string; children: React.ReactNode }) {
   return (
