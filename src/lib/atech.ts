@@ -1,4 +1,4 @@
-const logoAsset = { url: "/atech-logo-full.jpg" };
+const logoAsset = { url: "/atech-mark.jpg" };
 import { supabase } from "@/integrations/supabase/client";
 
 export async function loadLetterSettings() {
@@ -201,7 +201,7 @@ function addImage(doc: any, data: string | null, x: number, y: number, w: number
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function overviewHeader(doc: any, ref: string, logo: string | null, photo: string | null) {
-  addImage(doc, logo, 15, 10, 24, 24);
+  addImage(doc, logo, 14, 11, 26, 22);
   if (!addImage(doc, photo, 169, 9, 25, 30)) {
     doc.setDrawColor(150, 150, 150);
     doc.rect(169, 9, 25, 30);
@@ -304,15 +304,15 @@ const GOLD: [number, number, number] = [245, 184, 0];
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function corporateLetterhead(doc: any, logo: string | null, s: LetterSettings) {
   // white logo panel (left) + blue contact band (right) with yellow accent stripe
-  addImage(doc, logo, 12, 6, 30, 29);
+  addImage(doc, logo, 12, 9, 28, 24);
   doc.setTextColor(...NAVY);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(17);
-  doc.text("A-TECH", 45, 19);
+  doc.text("A-TECH", 43, 20);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7);
   doc.setTextColor(70, 80, 100);
-  doc.text(ATECH.tagline.toUpperCase(), 45, 24.5);
+  doc.text(ATECH.tagline.toUpperCase(), 43, 25.5);
   poly(doc, [[112, 8], [210, 8], [210, 34], [100, 34]], NAVY);
   poly(doc, [[104, 34], [210, 34], [210, 37], [103, 37]], GOLD);
   doc.setTextColor(255, 255, 255);
