@@ -61,7 +61,7 @@ export function usePortal() {
 }
 
 export function primaryRole(roles: string[]) {
-  if (roles.includes("admin")) return "admin";
+  if (roles.includes("admin") || roles.includes("super_admin")) return "admin";
   if (roles.includes("tutor")) return "tutor";
   if (roles.includes("student")) return "student";
   return "applicant";

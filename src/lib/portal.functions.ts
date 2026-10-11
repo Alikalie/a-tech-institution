@@ -741,3 +741,23 @@ export const issueStudentId = createServerFn({ method: "POST" })
     });
     return { studentId };
   });
+
+/** Admin view: uploaded documents (signed links) for one application. */
+export const getApplicationFiles = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { applicationId: string }) => ({ applicationId: String(input.applicationId) }))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: docs } = await supabaseAdmin
+      .from("application_documents")
+      .select("id, doc_type, file_name, storage_path, uploaded_at")
+      .eq("application_id", data.applicationId)
+      .order("uploaded_at");
+    const out: Array<{ id: string; docType: string; fileName: string; url: string | null }> = [];
+    for (const d of docs ?? []) {
+      const signed = await supabaseAdmin.storage.from("application-documents").createSignedUrl(d.storage_path, 900);
+      out.push({ id: d.id, docType: d.doc_type, fileName: d.file_name, url: signed.data?.signedUrl ?? null });
+    }
+    return out;
+  });

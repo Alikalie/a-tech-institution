@@ -120,7 +120,7 @@ function value(v?: string | boolean | null) {
 
 type DocumentSection = { title: string; rows: Array<[string, string | boolean | null | undefined]> };
 
-function applicationSections(app: ApplicationRecord, courseName: string): DocumentSection[] {
+export function applicationSections(app: ApplicationRecord, courseName: string): DocumentSection[] {
   return [
     {
       title: "PERSONAL INFORMATION",
