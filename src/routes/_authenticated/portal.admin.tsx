@@ -29,11 +29,20 @@ import {
   sendNotification,
 } from "@/lib/portal.functions";
 import { formatDate, statusTone } from "@/lib/atech";
+import { ApplicantVerification } from "@/components/admin/ApplicantVerification";
 import {
   AdminCharts, IdCardsPanel, NavLinksPanel, ProgrammesPanel, FormFieldsPanel, SiteContentPanel, CoursesAdmin, LetterEditorPanel,
 } from "@/components/admin/AdminExtras";
 
 export const Route = createFileRoute("/_authenticated/portal/admin")({
+  head: () => ({ meta: [
+    { title: "A-TECH Administration | Applicant Verification" },
+    { name: "description", content: "Manage A-TECH admissions, applicant evidence verification, accounts and academics." },
+    { property: "og:title", content: "A-TECH Administration" },
+    { property: "og:description", content: "A-TECH admissions and applicant evidence verification." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: AdminPage,
 });
 
@@ -522,7 +531,8 @@ function AdminPage() {
                     {app.status}
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                  {isSuper && <ApplicantVerification application={app} />}
                   <Button
                     size="sm"
                     disabled={decide.isPending || app.status === "accepted"}

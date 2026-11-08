@@ -27,6 +27,7 @@ import { Route as AuthenticatedPortalProfileRouteImport } from './routes/_authen
 import { Route as AuthenticatedPortalScheduleRouteImport } from './routes/_authenticated/portal.schedule'
 import { Route as AuthenticatedPortalTutorRouteImport } from './routes/_authenticated/portal.tutor'
 import { Route as AuthenticatedPortalVerifyRouteImport } from './routes/_authenticated/portal.verify'
+import { Route as ApiPublicVerifyApplicationRouteImport } from './routes/api/public/verify-application'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -127,6 +128,12 @@ const AuthenticatedPortalVerifyRoute =
     path: '/verify',
     getParentRoute: () => AuthenticatedPortalRoute,
   } as any)
+const ApiPublicVerifyApplicationRoute =
+  ApiPublicVerifyApplicationRouteImport.update({
+    id: '/api/public/verify-application',
+    path: '/api/public/verify-application',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -145,6 +152,7 @@ export interface FileRoutesByFullPath {
   '/portal/schedule': typeof AuthenticatedPortalScheduleRoute
   '/portal/tutor': typeof AuthenticatedPortalTutorRoute
   '/portal/verify': typeof AuthenticatedPortalVerifyRoute
+  '/api/public/verify-application': typeof ApiPublicVerifyApplicationRoute
   '/portal/': typeof AuthenticatedPortalIndexRoute
 }
 export interface FileRoutesByTo {
@@ -163,6 +171,7 @@ export interface FileRoutesByTo {
   '/portal/schedule': typeof AuthenticatedPortalScheduleRoute
   '/portal/tutor': typeof AuthenticatedPortalTutorRoute
   '/portal/verify': typeof AuthenticatedPortalVerifyRoute
+  '/api/public/verify-application': typeof ApiPublicVerifyApplicationRoute
   '/portal': typeof AuthenticatedPortalIndexRoute
 }
 export interface FileRoutesById {
@@ -184,6 +193,7 @@ export interface FileRoutesById {
   '/_authenticated/portal/schedule': typeof AuthenticatedPortalScheduleRoute
   '/_authenticated/portal/tutor': typeof AuthenticatedPortalTutorRoute
   '/_authenticated/portal/verify': typeof AuthenticatedPortalVerifyRoute
+  '/api/public/verify-application': typeof ApiPublicVerifyApplicationRoute
   '/_authenticated/portal/': typeof AuthenticatedPortalIndexRoute
 }
 export interface FileRouteTypes {
@@ -205,6 +215,7 @@ export interface FileRouteTypes {
     | '/portal/schedule'
     | '/portal/tutor'
     | '/portal/verify'
+    | '/api/public/verify-application'
     | '/portal/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -223,6 +234,7 @@ export interface FileRouteTypes {
     | '/portal/schedule'
     | '/portal/tutor'
     | '/portal/verify'
+    | '/api/public/verify-application'
     | '/portal'
   id:
     | '__root__'
@@ -243,6 +255,7 @@ export interface FileRouteTypes {
     | '/_authenticated/portal/schedule'
     | '/_authenticated/portal/tutor'
     | '/_authenticated/portal/verify'
+    | '/api/public/verify-application'
     | '/_authenticated/portal/'
   fileRoutesById: FileRoutesById
 }
@@ -254,6 +267,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
   CoursesRoute: typeof CoursesRoute
+  ApiPublicVerifyApplicationRoute: typeof ApiPublicVerifyApplicationRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -384,6 +398,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPortalVerifyRouteImport
       parentRoute: typeof AuthenticatedPortalRoute
     }
+    '/api/public/verify-application': {
+      id: '/api/public/verify-application'
+      path: '/api/public/verify-application'
+      fullPath: '/api/public/verify-application'
+      preLoaderRoute: typeof ApiPublicVerifyApplicationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -435,6 +456,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
   CoursesRoute: CoursesRoute,
+  ApiPublicVerifyApplicationRoute: ApiPublicVerifyApplicationRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

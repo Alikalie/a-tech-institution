@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { handleVerification } from "@/lib/ai/verification.server";
 
 export const Route = createFileRoute("/api/public/verify-application")({
-  server: { handlers: { POST: ({ request }) => handleVerification(request) } },
+  server: { handlers: { POST: async ({ request }) => {
+    const { handleVerification } = await import("@/lib/ai/verification.server");
+    return handleVerification(request);
+  } } },
 });
