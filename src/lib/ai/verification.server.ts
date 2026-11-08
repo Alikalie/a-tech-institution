@@ -39,6 +39,8 @@ export async function handleVerification(request: Request): Promise<Response> {
   ]);
   if (application.error || documents.error) return Response.json({ error: "Cannot load submitted answers or evidence." }, { status: 503 });
   if (!application.data) return Response.json({ error: "Application not found." }, { status: 404 });
+  const submitted = application.data;
+  const reviewerId = user.user.id;
   let selected;
   try { selected = selectEvidence(documents.data ?? [], input.documentIds, input.applicationId); } catch (e) { return Response.json({ error: e instanceof Error ? e.message : "Invalid evidence." }, { status: 400 }); }
   const apiKey = process.env["LOVABLE_API_KEY"];
@@ -55,7 +57,7 @@ export async function handleVerification(request: Request): Promise<Response> {
     if (file.error || !file.data || file.data.size === 0) { limitations.push(`${label}: could not be read.`); continue; }
     total += file.data.size;
     if (total > 24 * 1024 * 1024) return Response.json({ error: "Selected evidence is too large. Select fewer documents (24 MB total)." }, { status: 413 });
-    const mime = file.data.type.split(";")[0];
+    const mime = file.data.type.split(";")[0] ?? "";
     content.push({ type: "text", text: `Evidence label: ${label}` });
     const bytes = new Uint8Array(await file.data.arrayBuffer());
     if (["image/jpeg", "image/png", "image/webp"].includes(mime)) content.push({ type: "image", image: bytes, mediaType: mime });
@@ -68,8 +70,14 @@ export async function handleVerification(request: Request): Promise<Response> {
   let safeError = "AI verification could not complete. Please try again later.";
   let accessBlocked = false;
   let upstreamHeaders = new Headers();
+  const cancellation = new AbortController();
+  const signal = AbortSignal.any([request.signal, cancellation.signal]);
+  let resolveHeaders: () => void = () => {};
+  const headersReady = new Promise<void>((resolve) => { resolveHeaders = resolve; });
   const provider = createOpenAI({ baseURL: "https://ai.gateway.lovable.dev/v1", apiKey, headers: { "Lovable-API-Key": apiKey, "X-Lovable-AIG-SDK": "vercel-ai-sdk" }, fetch: async (req, init) => {
-    const response = await gateway.fetch(req, init);
+    let response: Response;
+    try { response = await gateway.fetch(req, init); }
+    catch (error) { upstreamStatus = request.signal.aborted ? 499 : 503; resolveHeaders(); throw error; }
     upstreamStatus = response.status; upstreamHeaders = response.headers;
     if (!response.ok) {
       const payload = await response.clone().json().catch(() => null);
@@ -80,37 +88,40 @@ export async function handleVerification(request: Request): Promise<Response> {
         if (saved.error) safeError = `${safeError} AI access could not be recorded; contact the administrator before any new request.`;
       }
     }
+    resolveHeaders();
     return response;
   } });
-  const result = streamText({ model: provider.responses("openai/gpt-6-astra"), system: instructions, messages: [{ role: "user", content }], output: Output.object({ schema: verificationReport }), maxRetries: 0, abortSignal: request.signal, providerOptions: { openai: { forceReasoning: true, reasoningEffort: "low", reasoningSummary: "auto", store: false, include: ["reasoning.encrypted_content"] } } });
+  const result = streamText({ model: provider.responses("openai/gpt-6-astra"), system: instructions, messages: [{ role: "user", content }], output: Output.object({ schema: verificationReport }), maxRetries: 0, abortSignal: signal, onError: () => { if (upstreamStatus === 200) upstreamStatus = 502; resolveHeaders(); }, providerOptions: { openai: { forceReasoning: true, reasoningEffort: "low", reasoningSummary: "auto", store: false, include: ["reasoning.encrypted_content"] } } });
   const iterator = result.fullStream[Symbol.asyncIterator]();
   const first = iterator.next();
-  await gateway.waitForRunId();
+  await headersReady;
   if (upstreamStatus !== 200) {
     await first.catch(() => undefined);
     return Response.json({ error: safeError, accessBlocked }, { status: upstreamStatus, headers: getLovableAiGatewayResponseHeaders(upstreamHeaders, { "Cache-Control": "no-store" }) });
   }
   const encoder = new TextEncoder();
+  let closed = false;
   const stream = new ReadableStream({ async start(controller) {
-    const send = (event: unknown) => controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
+    const send = (event: unknown) => { if (!closed) controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`)); };
     const heartbeat = setInterval(() => send({ type: "progress" }), 10000);
     try {
       send({ type: "progress" });
       let next = await first;
       while (!next.done) {
         if (next.value.type === "error") throw next.value.error;
+        if (next.value.type === "finish" && next.value.finishReason === "content-filter") throw new Error("The AI provider declined this verification request.");
         next = await iterator.next();
       }
       const report = await result.output;
       if (!report) throw new Error("No verification report was returned.");
       report.limitations = [...new Set([...report.limitations, ...limitations, "AI findings are advisory. Document authenticity and admission require administrator verification."])];
-      const audit = await supabaseAdmin.from("activity_log").insert({ actor_id: user.user.id, action: "AI application verification", detail: `Application ${application.data.reference}; ${selected.length} evidence files; ${report.findings.length} findings. No admission decision made.` });
+      const audit = await supabaseAdmin.from("activity_log").insert({ actor_id: reviewerId, action: "AI application verification", detail: `Application ${submitted.reference}; ${selected.length} evidence files; ${report.findings.length} findings. No admission decision made.` });
       if (audit.error) report.limitations.push("The verification activity could not be recorded in the audit log.");
       send({ type: "result", report, runId: gateway.getRunId() });
     } catch (error) {
       if (request.signal.aborted) send({ type: "error", error: "Verification stopped.", status: 499 });
-      else send({ type: "error", error: upstreamStatus !== 200 ? safeError : error instanceof Error && error.message === "No verification report was returned." ? error.message : "AI returned no usable verification report. Check the evidence manually.", status: upstreamStatus !== 200 ? upstreamStatus : 502, accessBlocked });
-    } finally { clearInterval(heartbeat); controller.close(); }
-  } });
+      else send({ type: "error", error: upstreamStatus !== 200 ? safeError : error instanceof Error && ["No verification report was returned.", "The AI provider declined this verification request."].includes(error.message) ? error.message : "AI returned no usable verification report. Check the evidence manually.", status: upstreamStatus !== 200 ? upstreamStatus : 502, accessBlocked });
+    } finally { clearInterval(heartbeat); if (!closed) { closed = true; controller.close(); } }
+  }, cancel() { closed = true; cancellation.abort(); } });
   return new Response(stream, { headers: getLovableAiGatewayResponseHeaders(upstreamHeaders, { "Content-Type": "application/x-ndjson", "Cache-Control": "no-store, no-transform" }) });
 }
