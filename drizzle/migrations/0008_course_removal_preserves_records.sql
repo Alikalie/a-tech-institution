@@ -1,0 +1,2 @@
+ALTER TABLE public.courses ADD COLUMN IF NOT EXISTS deleted_at timestamptz;
+COMMENT ON COLUMN public.courses.deleted_at IS 'Removed from course management and new applications; retained for existing application, grade and schedule references.';

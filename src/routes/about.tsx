@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SiteNav, SiteFooter } from "@/components/SiteNav";
 import { ATECH } from "@/lib/atech";
+import { useSiteContent } from "@/hooks/useSiteContent";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
@@ -33,16 +34,14 @@ const values = [
 ];
 
 function AboutPage() {
+  const { data: content } = useSiteContent();
   return (
     <div className="min-h-screen bg-background">
       <SiteNav />
       <main className="mx-auto max-w-5xl px-5 py-14">
         <h1 className="text-4xl font-bold">About {ATECH.name}</h1>
-        <p className="mt-4 max-w-2xl text-muted-foreground">
-          A-TECH is a computer training institute focused on integrated technology and data
-          analysis. We prepare learners for real work: operating modern systems, producing
-          professional documents and designs, managing networks, and turning data into decisions.
-          Our campus is located at {ATECH.address}.
+        <p className="mt-4 max-w-2xl whitespace-pre-line text-muted-foreground">
+          {content?.about_text || `A-TECH is a computer training institute focused on integrated technology and data analysis. We prepare learners for real work. Visit us at ${content?.contact_address || ATECH.address}.`}
         </p>
 
         <h2 className="gold-rule mt-12 pb-2 text-2xl">Why choose A-TECH?</h2>

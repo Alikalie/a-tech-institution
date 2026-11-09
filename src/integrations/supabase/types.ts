@@ -265,6 +265,7 @@ export type Database = {
         Row: {
           active: boolean
           code: string
+          deleted_at: string | null
           description: string
           duration: string
           name: string
@@ -275,6 +276,7 @@ export type Database = {
         Insert: {
           active?: boolean
           code: string
+          deleted_at?: string | null
           description?: string
           duration: string
           name: string
@@ -285,6 +287,7 @@ export type Database = {
         Update: {
           active?: boolean
           code?: string
+          deleted_at?: string | null
           description?: string
           duration?: string
           name?: string

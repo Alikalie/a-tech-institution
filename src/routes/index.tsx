@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SiteNav, SiteFooter } from "@/components/SiteNav";
 import { Button } from "@/components/ui/button";
 import { ATECH } from "@/lib/atech";
+import { useSiteContent } from "@/hooks/useSiteContent";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -36,6 +37,7 @@ const steps = [
 ];
 
 function Landing() {
+  const { data: content } = useSiteContent();
   const { data: courses } = useQuery({
     queryKey: ["public-courses"],
     queryFn: async () => {
@@ -49,6 +51,7 @@ function Landing() {
       <SiteNav />
 
       <main>
+        {content?.announcement && <div className="bg-accent px-5 py-3 text-center text-sm text-accent-foreground">{content.announcement}</div>}
         {/* Hero */}
         <section className="brand-bar relative overflow-hidden px-5 py-20">
           <div className="mx-auto grid max-w-6xl gap-10 md:grid-cols-[1.15fr_1fr] md:items-center">
@@ -57,12 +60,10 @@ function Landing() {
                 {ATECH.tagline}
               </p>
               <h1 className="mt-4 font-display text-4xl leading-tight font-bold text-primary-foreground md:text-6xl">
-                Train. Apply.<br />Graduate with <span className="text-accent">A&#8209;TECH</span>.
+                 {content?.hero_title || "A-TECH Computer Training"}
               </h1>
               <p className="mt-5 max-w-xl text-primary-foreground/80">
-                The official A-TECH course application and student management portal. Apply online,
-                track your admission, download your application form and manage your grades, results
-                and timetable in one place.
+                 {content?.hero_subtitle || "Apply for practical computer training, track your admission and access your A-TECH student documents."}
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Button asChild size="lg" className="bg-accent font-semibold text-accent-foreground hover:bg-accent/90">
