@@ -1,5 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { z } from "zod";
+import { courseRemovalUpdate, editableTables } from "@/lib/admin-rules";
 
 type Ctx = { supabase: { rpc: Function }; userId: string };
 
@@ -359,10 +361,11 @@ export const listApplications = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     await assertAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data } = await supabaseAdmin
+    const { data, error } = await supabaseAdmin
       .from("applications")
       .select("*")
       .order("submitted_at", { ascending: false });
+    if (error) throw new Error(error.message);
     return data ?? [];
   });
 
@@ -607,14 +610,45 @@ export const deleteCourse = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("courses").delete().eq("code", data.code);
-    if (error) throw new Error("This course is in use and cannot be removed.");
+    const { error } = await context.supabase.from("courses").update(courseRemovalUpdate(new Date().toISOString())).eq("code", data.code);
+    if (error) throw new Error(error.message);
     await supabaseAdmin.from("activity_log").insert({
       actor_id: context.userId,
       action: "Course removed",
       detail: data.code,
     });
     return { ok: true };
+  });
+
+/** Explicitly allow-listed business records only; roles and audit logs have separate controls. */
+export const manageRecords = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({
+    table: z.enum(editableTables),
+    action: z.enum(["list", "insert", "update", "delete"]),
+    id: z.string().uuid().optional(),
+    record: z.record(z.unknown()).optional(),
+  }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context);
+    const table = context.supabase.from(data.table);
+    if (data.action === "list") {
+      const result = await table.select("*").limit(500);
+      if (result.error) throw new Error(result.error.message);
+      return result.data as unknown as Record<string, unknown>[];
+    }
+    if (data.action !== "insert" && !data.id) throw new Error("Select a record first.");
+    const record = { ...data.record };
+    delete record.id;
+    const result = data.action === "delete"
+      ? await table.delete().eq("id", data.id ?? "")
+      : data.action === "update"
+        ? await table.update(record as never).eq("id", data.id ?? "")
+        : await table.insert(record as never);
+    if (result.error) throw new Error(result.error.message);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("activity_log").insert({ actor_id: context.userId, action: `Record ${data.action}`, detail: `${data.table} ${data.id ?? "new"}` });
+    return [] as Record<string, unknown>[];
   });
 
 /** Create a timetable entry. */
