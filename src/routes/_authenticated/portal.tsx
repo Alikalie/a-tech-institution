@@ -5,6 +5,8 @@ import { BrandLogo } from "@/components/BrandHeader";
 import { Button } from "@/components/ui/button";
 import { usePortal, primaryRole } from "@/hooks/usePortal";
 import { ATECH } from "@/lib/atech";
+import { useState } from "react";
+import { Menu, X } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/portal")({
   component: PortalLayout,
@@ -14,7 +16,7 @@ type NavItem = { to: string; label: string };
 
 function navFor(role: string, verified: boolean): NavItem[] {
   const base: NavItem[] = [{ to: "/portal", label: "Dashboard" }];
-  if (role === "admin") {
+  if (role === "admin" || role === "super_admin") {
     return [...base, { to: "/portal/admin", label: "Administration" }, { to: "/portal/tutor", label: "Grades & results" }, { to: "/portal/notifications", label: "Notifications" }, { to: "/portal/profile", label: "My profile" }];
   }
   if (role === "tutor") {
@@ -42,6 +44,7 @@ function navFor(role: string, verified: boolean): NavItem[] {
 }
 
 function PortalLayout() {
+  const [menuOpen, setMenuOpen] = useState(false);
   const { data } = usePortal();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -58,8 +61,8 @@ function PortalLayout() {
   return (
     <div className="min-h-screen bg-background">
       <header className="brand-bar px-4 py-3 sm:px-6">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
-          <Link to="/portal" className="flex items-center gap-3">
+        <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+          <Link to="/portal" className="flex min-w-0 items-center gap-3">
             <BrandLogo size={36} />
             <span className="leading-tight">
               <span className="block font-display text-base font-bold text-primary-foreground">
@@ -71,6 +74,7 @@ function PortalLayout() {
             </span>
           </Link>
           <div className="flex items-center gap-3">
+            <Button size="icon" variant="ghost" className="text-primary-foreground lg:hidden" aria-label={menuOpen ? "Close portal menu" : "Open portal menu"} aria-expanded={menuOpen} aria-controls="portal-menu" onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X /> : <Menu />}</Button>
             <span className="hidden text-xs text-primary-foreground/80 sm:block">
               {data?.profile?.full_name || data?.profile?.email}
             </span>
@@ -81,12 +85,13 @@ function PortalLayout() {
         </div>
       </header>
 
-      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 md:flex-row">
-        <nav className="flex flex-wrap gap-1 md:w-56 md:shrink-0 md:flex-col">
+      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 lg:flex-row">
+        <nav id="portal-menu" className={`${menuOpen ? "flex" : "hidden"} flex-col gap-1 lg:flex lg:w-48 lg:shrink-0`}>
           {items.map((i) => (
             <Link
               key={i.to}
               to={i.to}
+              onClick={() => setMenuOpen(false)}
               activeOptions={{ exact: i.to === "/portal" }}
               className="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               activeProps={{ className: "bg-primary text-primary-foreground hover:bg-primary" }}

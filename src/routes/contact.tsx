@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SiteNav, SiteFooter } from "@/components/SiteNav";
 import { ATECH } from "@/lib/atech";
+import { useSiteContent } from "@/hooks/useSiteContent";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact A-TECH | Visit or Call Our Campus" },
+      { title: "Contact A-TECH | Admissions Enquiries" },
       {
         name: "description",
         content:
@@ -14,7 +15,7 @@ export const Route = createFileRoute("/contact")({
       { property: "og:title", content: "Contact A-TECH" },
       {
         property: "og:description",
-        content: "Campus location and office hours for A-TECH admissions enquiries.",
+        content: "Contact details and office location for A-TECH admissions enquiries.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -24,6 +25,7 @@ export const Route = createFileRoute("/contact")({
 });
 
 function ContactPage() {
+  const { data: content } = useSiteContent();
   return (
     <div className="min-h-screen bg-background">
       <SiteNav />
@@ -34,16 +36,14 @@ function ContactPage() {
         </p>
         <div className="mt-8 grid gap-4 sm:grid-cols-2">
           <div className="card-elevated p-5">
-            <h2 className="text-sm font-semibold">Campus</h2>
-            <p className="mt-1 text-sm text-muted-foreground">{ATECH.address}</p>
+            <h2 className="text-sm font-semibold">Office</h2>
+            <p className="mt-1 text-sm text-muted-foreground">{content?.contact_address || ATECH.address}</p>
           </div>
           <div className="card-elevated p-5">
-            <h2 className="text-sm font-semibold">Office hours</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Monday – Friday, 9:00am – 5:00pm
-              <br />
-              Saturday, 9:00am – 1:00pm
-            </p>
+            <h2 className="text-sm font-semibold">Contact details</h2>
+            {content?.contact_phone && <a className="mt-2 block text-sm text-primary" href={`tel:${content.contact_phone}`}>{content.contact_phone}</a>}
+            {content?.contact_email && <a className="mt-2 block break-all text-sm text-primary" href={`mailto:${content.contact_email}`}>{content.contact_email}</a>}
+            {content?.office_hours && <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">{content.office_hours}</p>}
           </div>
           <div className="card-elevated p-5">
             <h2 className="text-sm font-semibold">Admissions</h2>
