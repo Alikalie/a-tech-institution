@@ -627,7 +627,7 @@ export const manageRecords = createServerFn({ method: "POST" })
     table: z.enum(editableTables),
     action: z.enum(["list", "insert", "update", "delete"]),
     id: z.string().uuid().optional(),
-    record: z.record(z.unknown()).optional(),
+    record: z.string().optional(),
   }).parse(input))
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context);
@@ -635,11 +635,13 @@ export const manageRecords = createServerFn({ method: "POST" })
     if (data.action === "list") {
       const result = await table.select("*").limit(500);
       if (result.error) throw new Error(result.error.message);
-      return result.data as unknown as Record<string, unknown>[];
+      return JSON.stringify(result.data);
     }
     if (data.action !== "insert" && !data.id) throw new Error("Select a record first.");
-    const record = { ...data.record };
-    delete record.id;
+    const parsed: unknown = JSON.parse(data.record ?? "{}");
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Enter one record object.");
+    const record = { ...parsed } as Record<string, unknown>;
+    if (data.action !== "insert") delete record["id"];
     const result = data.action === "delete"
       ? await table.delete().eq("id", data.id ?? "")
       : data.action === "update"
@@ -648,7 +650,7 @@ export const manageRecords = createServerFn({ method: "POST" })
     if (result.error) throw new Error(result.error.message);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await supabaseAdmin.from("activity_log").insert({ actor_id: context.userId, action: `Record ${data.action}`, detail: `${data.table} ${data.id ?? "new"}` });
-    return [] as Record<string, unknown>[];
+    return "[]";
   });
 
 /** Create a timetable entry. */

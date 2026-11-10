@@ -1,5 +1,6 @@
 const logoAsset = { url: "/atech-mark.jpg" };
 import { supabase } from "@/integrations/supabase/client";
+import { brandFrame } from "@/lib/document-brand";
 
 export async function loadLetterSettings() {
   const { data } = await supabase.from("site_content").select("key, value");
@@ -10,6 +11,7 @@ export async function loadLetterSettings() {
     signatoryTitle: m["signatory_title"],
     phone: m["contact_phone"],
     email: m["contact_email"],
+    address: m["contact_address"],
   };
 }
 
@@ -278,6 +280,7 @@ export type LetterSettings = {
   signatoryTitle?: string | undefined;
   phone?: string | undefined;
   email?: string | undefined;
+  address?: string | undefined;
 };
 
 export function fillTemplate(tpl: string, app: ApplicationRecord, course: Course) {
@@ -290,54 +293,23 @@ export function fillTemplate(tpl: string, app: ApplicationRecord, course: Course
     .replace(/\{reference\}/g, app.reference);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function poly(doc: any, pts: [number, number][], rgb: [number, number, number]) {
-  doc.setFillColor(...rgb);
-  const [x0, y0] = pts[0]!;
-  const rel = pts.slice(1).map((p, i) => [p[0] - pts[i]![0], p[1] - pts[i]![1]]);
-  doc.lines(rel, x0, y0, [1, 1], "F", true);
-}
-
 const NAVY: [number, number, number] = [30, 91, 216];
 const GOLD: [number, number, number] = [245, 184, 0];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function corporateLetterhead(doc: any, logo: string | null, s: LetterSettings) {
-  // white logo panel (left) + blue contact band (right) with yellow accent stripe
-  addImage(doc, logo, 12, 9, 28, 24);
+  brandFrame(doc, "Acceptance", "LETTER OF ADMISSION");
+  if (logo) addImage(doc, logo, 12, 7, 19, 19);
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold");
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7);
   doc.setTextColor(...NAVY);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(17);
-  doc.text("A-TECH", 43, 20);
-  doc.setFont("helvetica", "normal");
+  const contact = [s.address || ATECH.address, s.phone, s.email].filter(Boolean).join(" | ");
+  doc.text(doc.splitTextToSize(contact, 174), 18, 48);
   doc.setFontSize(7);
-  doc.setTextColor(70, 80, 100);
-  doc.text(ATECH.tagline.toUpperCase(), 43, 25.5);
-  poly(doc, [[112, 8], [210, 8], [210, 34], [100, 34]], NAVY);
-  poly(doc, [[104, 34], [210, 34], [210, 37], [103, 37]], GOLD);
-  doc.setTextColor(255, 255, 255);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8.5);
-  doc.text("Address", 114, 16);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(7.2);
-  doc.text(ATECH.address, 114, 21);
-  doc.text("Sierra Leone", 114, 25.5);
-  doc.setTextColor(255, 220, 110);
-  doc.text("Tel", 158, 16);
-  doc.text("Email", 158, 25.5);
-  doc.setTextColor(255, 255, 255);
-  doc.text(s.phone || "+23277864684", 158, 20);
-  doc.text(s.email || "fofanahalikalie0@gmail.com", 158, 29.5);
-  doc.setDrawColor(225, 230, 240);
-  doc.setLineWidth(0.3);
-  doc.line(12, 41, 198, 41);
-  // footer bars
-  poly(doc, [[0, 285], [140, 285], [134, 291], [0, 291]], NAVY);
-  poly(doc, [[144, 285], [210, 285], [210, 291], [138, 291]], GOLD);
-  doc.setFontSize(7);
-  doc.setTextColor(120, 120, 120);
-  doc.text(`${ATECH.name}  |  ${ATECH.address}`, 105, 281, { align: "center" });
+  doc.text(ATECH.name, 105, 283, { align: "center" });
+
 }
 
 export async function downloadAcceptancePDF(app: ApplicationRecord, course: Course, settings: LetterSettings = {}) {
@@ -386,8 +358,25 @@ export async function downloadAcceptancePDF(app: ApplicationRecord, course: Cour
   for (const para of body.split(/\n/)) {
     if (!para.trim()) { y += 3; continue; }
     const lines = doc.splitTextToSize(para, 174);
-    doc.text(lines, 18, y, { lineHeightFactor: 1.5 });
-    y += lines.length * 5.6;
+    for (const line of lines) {
+      if (y > 258) {
+        doc.addPage();
+        corporateLetterhead(doc, logo, settings);
+        doc.setTextColor(30, 30, 30);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10.5);
+        y = 65;
+      }
+      doc.text(line, 18, y);
+      y += 5.6;
+    }
+  }
+  if (y + 42 > 269) {
+    doc.addPage();
+    corporateLetterhead(doc, logo, settings);
+    y = 65;
+    doc.setFontSize(10.5);
+    doc.setTextColor(30, 30, 30);
   }
   y = Math.max(y + 12, 225);
   doc.text("Yours faithfully,", 18, y);

@@ -15,7 +15,7 @@ function answer(value: unknown): string {
   if (typeof value === "object") return Object.entries(value).map(([k, v]) => `${k.replaceAll("_", " ")}: ${answer(v)}`).join("\n");
   return String(value);
 }
-export function ApplicationDetails({ application, course }: { application: Application; course?: Course }) {
+export function ApplicationDetails({ application, course }: { application: Application; course?: Course | undefined }) {
   const [open, setOpen] = useState(false);
   const filesFn = useServerFn(getApplicationFiles);
   const files = useQuery({ queryKey: ["application-files", application.id], enabled: open, staleTime: 0, queryFn: () => filesFn({ data: { applicationId: application.id } }) });

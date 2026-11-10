@@ -3,6 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/portal/schedule")({
+  head: () => ({ meta: [
+    { title: "Class Timetable | A-TECH" },
+    { name: "description", content: "View the A-TECH class schedule and course sessions." },
+    { property: "og:title", content: "Class Timetable | A-TECH" },
+    { property: "og:description", content: "View the A-TECH class schedule and course sessions." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: SchedulePage,
 });
 

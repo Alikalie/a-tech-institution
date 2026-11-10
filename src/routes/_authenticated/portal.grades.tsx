@@ -5,6 +5,14 @@ import { usePortal } from "@/hooks/usePortal";
 import { formatDate } from "@/lib/atech";
 
 export const Route = createFileRoute("/_authenticated/portal/grades")({
+  head: () => ({ meta: [
+    { title: "My Grades & Results | A-TECH" },
+    { name: "description", content: "Review your A-TECH course grades and assessment results." },
+    { property: "og:title", content: "My Grades & Results | A-TECH" },
+    { property: "og:description", content: "Review your A-TECH course grades and assessment results." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: GradesPage,
 });
 

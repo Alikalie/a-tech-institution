@@ -8,6 +8,14 @@ import { usePortal } from "@/hooks/usePortal";
 import { verifyPaymentCode } from "@/lib/portal.functions";
 
 export const Route = createFileRoute("/_authenticated/portal/verify")({
+  head: () => ({ meta: [
+    { title: "Payment Verification | A-TECH" },
+    { name: "description", content: "Verify your name-bound A-TECH application payment code." },
+    { property: "og:title", content: "Payment Verification | A-TECH" },
+    { property: "og:description", content: "Verify your name-bound A-TECH application payment code." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: VerifyPage,
 });
 
