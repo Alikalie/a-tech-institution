@@ -1,5 +1,6 @@
 const logoAsset = { url: "/atech-mark.jpg" };
 import { supabase } from "@/integrations/supabase/client";
+import { brandFrame } from "@/lib/document-brand";
 
 export async function loadLetterSettings() {
   const { data } = await supabase.from("site_content").select("key, value");
@@ -10,6 +11,7 @@ export async function loadLetterSettings() {
     signatoryTitle: m["signatory_title"],
     phone: m["contact_phone"],
     email: m["contact_email"],
+    address: m["contact_address"],
   };
 }
 
@@ -278,6 +280,7 @@ export type LetterSettings = {
   signatoryTitle?: string | undefined;
   phone?: string | undefined;
   email?: string | undefined;
+  address?: string | undefined;
 };
 
 export function fillTemplate(tpl: string, app: ApplicationRecord, course: Course) {
@@ -293,8 +296,10 @@ export function fillTemplate(tpl: string, app: ApplicationRecord, course: Course
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function poly(doc: any, pts: [number, number][], rgb: [number, number, number]) {
   doc.setFillColor(...rgb);
-  const [x0, y0] = pts[0]!;
-  const rel = pts.slice(1).map((p, i) => [p[0] - pts[i]![0], p[1] - pts[i]![1]]);
+  const first = pts[0];
+  if (!first) return;
+  const [x0, y0] = first;
+  const rel = pts.slice(1).map((p, i) => [p[0] - (pts[i]?.[0] ?? x0), p[1] - (pts[i]?.[1] ?? y0)]);
   doc.lines(rel, x0, y0, [1, 1], "F", true);
 }
 
@@ -303,6 +308,20 @@ const GOLD: [number, number, number] = [245, 184, 0];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function corporateLetterhead(doc: any, logo: string | null, s: LetterSettings) {
+  brandFrame(doc, "Acceptance", "LETTER OF ADMISSION");
+  if (logo) addImage(doc, logo, 12, 7, 19, 19);
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(12);
+  doc.text("A-TECH", 34, 17);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7);
+  doc.setTextColor(...NAVY);
+  const contact = [s.address || ATECH.address, s.phone, s.email].filter(Boolean).join(" | ");
+  doc.text(doc.splitTextToSize(contact, 174), 18, 43);
+  doc.setFontSize(7);
+  doc.text(ATECH.name, 105, 283, { align: "center" });
+  return;
   // white logo panel (left) + blue contact band (right) with yellow accent stripe
   addImage(doc, logo, 12, 9, 28, 24);
   doc.setTextColor(...NAVY);

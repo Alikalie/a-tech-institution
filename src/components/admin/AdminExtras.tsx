@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { downloadIdCard, type IdCard } from "@/lib/idcard";
+import { useServerFn } from "@tanstack/react-start";
+import { deleteCourse } from "@/lib/portal.functions";
 
 const NAVY = "hsl(var(--primary))";
 const COLORS = ["#1E5BD8", "#F5B800", "#5B8DEF", "#0B3A8F", "#FFD54A", "#9DB8F2"];
@@ -161,7 +163,7 @@ export function IdCardsPanel() {
       valid.setFullYear(valid.getFullYear() + 1);
       const row = {
         user_id: s.id,
-        student_id: s.student_id!,
+        student_id: s.student_id ?? "",
         full_name: s.full_name || app?.full_name || "Student",
         programme,
         dob: app?.dob ?? null,
@@ -270,7 +272,7 @@ function CrudTable<T extends Record<string, unknown> & { id: string }>({
               <Textarea value={String(draft[f.key] ?? "")} onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value })} />
             ) : f.type === "select" ? (
               <select className="h-9 w-full rounded-md border bg-background px-2 text-sm" value={String(draft[f.key] ?? "")} onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value })}>
-                {f.options!.map((o) => <option key={o} value={o}>{o}</option>)}
+                {(f.options ?? []).map((o) => <option key={o} value={o}>{o}</option>)}
               </select>
             ) : (
               <Input type={f.type === "number" ? "number" : "text"} value={String(draft[f.key] ?? "")}
@@ -374,6 +376,8 @@ const CONTENT_KEYS: [string, string][] = [
   ["about_text", "About A-TECH text"],
   ["contact_phone", "Contact phone"],
   ["contact_email", "Contact email"],
+  ["contact_address", "Contact address"],
+  ["office_hours", "Office hours"],
   ["footer_text", "Footer text"],
 ];
 
@@ -416,11 +420,12 @@ const emptyCourse: CourseFull = { code: "", name: "", duration: "", price: "", s
 
 export function CoursesAdmin() {
   const inv = useInvalidate();
+  const removeCourse = useServerFn(deleteCourse);
   const { data } = useQuery({
     queryKey: ["admin-courses-full"],
     queryFn: async () => {
       const [c, p] = await Promise.all([
-        supabase.from("courses").select("*").order("sort_order"),
+        supabase.from("courses").select("*").is("deleted_at", null).order("sort_order"),
         supabase.from("programmes").select("id, name").order("sort_order"),
       ]);
       return { courses: (c.data ?? []) as CourseFull[], programmes: p.data ?? [] };
@@ -433,16 +438,16 @@ export function CoursesAdmin() {
     mutationFn: async () => {
       if (!f.code.trim() || !f.name.trim()) throw new Error("Code and name are required");
       const duration = amount ? `${amount} ${Number(amount) === 1 ? unit.replace(/s$/, "") : unit}` : f.duration;
-      const { error } = await supabase.from("courses").upsert({ ...f, code: f.code.trim().toUpperCase(), duration }, { onConflict: "code" });
+      const { error } = await supabase.from("courses").upsert({ ...f, deleted_at: null, code: f.code.trim().toUpperCase(), duration }, { onConflict: "code" });
       if (error) throw error;
     },
     onSuccess: () => { toast.success("Course saved"); setF(emptyCourse); inv("admin-courses-full", "admin-courses", "public-courses"); },
     onError: (e: Error) => toast.error(e.message),
   });
   const del = useMutation({
-    mutationFn: async (code: string) => { const { error } = await supabase.from("courses").delete().eq("code", code); if (error) throw error; },
-    onSuccess: () => { toast.success("Course deleted"); inv("admin-courses-full", "public-courses"); },
-    onError: (e: Error) => toast.error(`${e.message} (courses with applications cannot be deleted — mark inactive instead)`),
+    mutationFn: (code: string) => removeCourse({ data: { code } }),
+    onSuccess: () => { toast.success("Course removed; submitted records preserved"); inv("admin-courses-full", "admin-courses", "public-courses"); },
+    onError: (e: Error) => toast.error(e.message),
   });
   const pname = (id: string | null) => data?.programmes.find((p) => p.id === id)?.name ?? "-";
   return (

@@ -30,6 +30,10 @@ import {
 } from "@/lib/portal.functions";
 import { formatDate, statusTone } from "@/lib/atech";
 import { ApplicantVerification } from "@/components/admin/ApplicantVerification";
+import { ApplicationDetails } from "@/components/admin/ApplicationDetails";
+import { RecordsManager } from "@/components/admin/RecordsManager";
+import { CertificatesPanel } from "@/components/admin/CertificatesPanel";
+import { matchesApplication } from "@/lib/admin-rules";
 import {
   AdminCharts, IdCardsPanel, NavLinksPanel, ProgrammesPanel, FormFieldsPanel, SiteContentPanel, CoursesAdmin, LetterEditorPanel,
 } from "@/components/admin/AdminExtras";
@@ -58,6 +62,8 @@ const SECTIONS = [
   "Student IDs",
   "ID cards",
   "Acceptance letter",
+  "Certificates",
+  "Data management",
   "Grades",
   "Results",
   "Timetable",
@@ -96,6 +102,8 @@ function AdminPage() {
   const qc = useQueryClient();
   const [section, setSection] = useState<Section>("Dashboard");
   const [search, setSearch] = useState("");
+  const [applicationSearch, setApplicationSearch] = useState("");
+  const [applicationStatus, setApplicationStatus] = useState("all");
 
   const accountsFn = useServerFn(listAccounts);
   const applicationsFn = useServerFn(listApplications);
@@ -238,16 +246,17 @@ function AdminPage() {
         </select>
         <nav className="card-elevated hidden max-h-[80vh] flex-col gap-0.5 overflow-y-auto p-2 lg:flex">
           {SECTIONS.map((s) => (
-            <button
+            <Button
               key={s}
               type="button"
+              variant="ghost"
               onClick={() => setSection(s)}
-              className={`rounded-md px-3 py-1.5 text-left text-sm transition-colors ${
+              className={`h-auto justify-start whitespace-normal rounded-md px-3 py-1.5 text-left text-sm transition-colors ${
                 section === s ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
               {s}
-            </button>
+            </Button>
           ))}
         </nav>
       </aside>
@@ -476,6 +485,9 @@ function AdminPage() {
       {section === "Programmes" && <ProgrammesPanel />}
       {section === "ID cards" && <IdCardsPanel />}
       {section === "Acceptance letter" && <LetterEditorPanel />}
+      {section === "Certificates" && <CertificatesPanel />}
+      {section === "Data management" && isSuper && <RecordsManager />}
+      {section === "Data management" && !isSuper && <p role="alert">Super administrator access required.</p>}
       {section === "Website pages" && <SiteContentPanel />}
       {section === "Navigation" && <NavLinksPanel />}
       {section === "Registration fields" && <FormFieldsPanel />}
@@ -532,6 +544,7 @@ function AdminPage() {
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
+                  <ApplicationDetails application={app} course={courses.data?.find((c) => c.code === app.course_code)} />
                   {isSuper && <ApplicantVerification application={app} />}
                   <Button
                     size="sm"
