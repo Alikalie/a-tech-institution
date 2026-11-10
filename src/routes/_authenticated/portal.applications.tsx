@@ -16,6 +16,14 @@ import {
 } from "@/lib/atech";
 
 export const Route = createFileRoute("/_authenticated/portal/applications")({
+  head: () => ({ meta: [
+    { title: "My Applications & Documents | A-TECH" },
+    { name: "description", content: "Access your A-TECH application forms, acceptance letters and student ID card." },
+    { property: "og:title", content: "My Applications & Documents | A-TECH" },
+    { property: "og:description", content: "Access your A-TECH application forms, acceptance letters and student ID card." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: ApplicationsPage,
 });
 

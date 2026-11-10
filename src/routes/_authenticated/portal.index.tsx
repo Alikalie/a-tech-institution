@@ -8,6 +8,14 @@ import { claimFirstAdmin } from "@/lib/portal.functions";
 import { formatDate, statusTone } from "@/lib/atech";
 
 export const Route = createFileRoute("/_authenticated/portal/")({
+  head: () => ({ meta: [
+    { title: "Portal Dashboard | A-TECH" },
+    { name: "description", content: "Your A-TECH admissions and student account overview." },
+    { property: "og:title", content: "Portal Dashboard | A-TECH" },
+    { property: "og:description", content: "Your A-TECH admissions and student account overview." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: Dashboard,
 });
 

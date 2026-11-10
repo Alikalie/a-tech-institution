@@ -9,6 +9,14 @@ import { usePortal, primaryRole } from "@/hooks/usePortal";
 import { formatDate } from "@/lib/atech";
 
 export const Route = createFileRoute("/_authenticated/portal/profile")({
+  head: () => ({ meta: [
+    { title: "My Profile | A-TECH" },
+    { name: "description", content: "Manage your A-TECH profile and account contact details." },
+    { property: "og:title", content: "My Profile | A-TECH" },
+    { property: "og:description", content: "Manage your A-TECH profile and account contact details." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: ProfilePage,
 });
 

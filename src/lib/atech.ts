@@ -293,16 +293,6 @@ export function fillTemplate(tpl: string, app: ApplicationRecord, course: Course
     .replace(/\{reference\}/g, app.reference);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function poly(doc: any, pts: [number, number][], rgb: [number, number, number]) {
-  doc.setFillColor(...rgb);
-  const first = pts[0];
-  if (!first) return;
-  const [x0, y0] = first;
-  const rel = pts.slice(1).map((p, i) => [p[0] - (pts[i]?.[0] ?? x0), p[1] - (pts[i]?.[1] ?? y0)]);
-  doc.lines(rel, x0, y0, [1, 1], "F", true);
-}
-
 const NAVY: [number, number, number] = [30, 91, 216];
 const GOLD: [number, number, number] = [245, 184, 0];
 
@@ -321,42 +311,7 @@ function corporateLetterhead(doc: any, logo: string | null, s: LetterSettings) {
   doc.text(doc.splitTextToSize(contact, 174), 18, 43);
   doc.setFontSize(7);
   doc.text(ATECH.name, 105, 283, { align: "center" });
-  return;
-  // white logo panel (left) + blue contact band (right) with yellow accent stripe
-  addImage(doc, logo, 12, 9, 28, 24);
-  doc.setTextColor(...NAVY);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(17);
-  doc.text("A-TECH", 43, 20);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(7);
-  doc.setTextColor(70, 80, 100);
-  doc.text(ATECH.tagline.toUpperCase(), 43, 25.5);
-  poly(doc, [[112, 8], [210, 8], [210, 34], [100, 34]], NAVY);
-  poly(doc, [[104, 34], [210, 34], [210, 37], [103, 37]], GOLD);
-  doc.setTextColor(255, 255, 255);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8.5);
-  doc.text("Address", 114, 16);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(7.2);
-  doc.text(ATECH.address, 114, 21);
-  doc.text("Sierra Leone", 114, 25.5);
-  doc.setTextColor(255, 220, 110);
-  doc.text("Tel", 158, 16);
-  doc.text("Email", 158, 25.5);
-  doc.setTextColor(255, 255, 255);
-  doc.text(s.phone || "+23277864684", 158, 20);
-  doc.text(s.email || "fofanahalikalie0@gmail.com", 158, 29.5);
-  doc.setDrawColor(225, 230, 240);
-  doc.setLineWidth(0.3);
-  doc.line(12, 41, 198, 41);
-  // footer bars
-  poly(doc, [[0, 285], [140, 285], [134, 291], [0, 291]], NAVY);
-  poly(doc, [[144, 285], [210, 285], [210, 291], [138, 291]], GOLD);
-  doc.setFontSize(7);
-  doc.setTextColor(120, 120, 120);
-  doc.text(`${ATECH.name}  |  ${ATECH.address}`, 105, 281, { align: "center" });
+
 }
 
 export async function downloadAcceptancePDF(app: ApplicationRecord, course: Course, settings: LetterSettings = {}) {

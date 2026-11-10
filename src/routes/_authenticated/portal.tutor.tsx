@@ -11,6 +11,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { listStudents, uploadGrade } from "@/lib/portal.functions";
 
 export const Route = createFileRoute("/_authenticated/portal/tutor")({
+  head: () => ({ meta: [
+    { title: "Tutor Workspace | A-TECH" },
+    { name: "description", content: "Manage A-TECH student assessments and course results." },
+    { property: "og:title", content: "Tutor Workspace | A-TECH" },
+    { property: "og:description", content: "Manage A-TECH student assessments and course results." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: TutorPage,
 });
 

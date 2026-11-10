@@ -6,6 +6,14 @@ import { usePortal } from "@/hooks/usePortal";
 import { formatDate } from "@/lib/atech";
 
 export const Route = createFileRoute("/_authenticated/portal/notifications")({
+  head: () => ({ meta: [
+    { title: "My Notifications | A-TECH" },
+    { name: "description", content: "Read A-TECH admission, course and student account updates." },
+    { property: "og:title", content: "My Notifications | A-TECH" },
+    { property: "og:description", content: "Read A-TECH admission, course and student account updates." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: NotificationsPage,
 });
 

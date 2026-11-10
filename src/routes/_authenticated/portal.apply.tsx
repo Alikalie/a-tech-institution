@@ -10,6 +10,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { usePortal } from "@/hooks/usePortal";
 
 export const Route = createFileRoute("/_authenticated/portal/apply")({
+  head: () => ({ meta: [
+    { title: "Course Application | A-TECH" },
+    { name: "description", content: "Submit personal information and supporting evidence for A-TECH admission." },
+    { property: "og:title", content: "Course Application | A-TECH" },
+    { property: "og:description", content: "Submit personal information and supporting evidence for A-TECH admission." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: ApplyPage,
 });
 
