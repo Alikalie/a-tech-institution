@@ -302,13 +302,11 @@ function corporateLetterhead(doc: any, logo: string | null, s: LetterSettings) {
   if (logo) addImage(doc, logo, 12, 7, 19, 19);
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
-  doc.text("A-TECH", 34, 17);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7);
   doc.setTextColor(...NAVY);
   const contact = [s.address || ATECH.address, s.phone, s.email].filter(Boolean).join(" | ");
-  doc.text(doc.splitTextToSize(contact, 174), 18, 43);
+  doc.text(doc.splitTextToSize(contact, 174), 18, 48);
   doc.setFontSize(7);
   doc.text(ATECH.name, 105, 283, { align: "center" });
 
@@ -360,8 +358,25 @@ export async function downloadAcceptancePDF(app: ApplicationRecord, course: Cour
   for (const para of body.split(/\n/)) {
     if (!para.trim()) { y += 3; continue; }
     const lines = doc.splitTextToSize(para, 174);
-    doc.text(lines, 18, y, { lineHeightFactor: 1.5 });
-    y += lines.length * 5.6;
+    for (const line of lines) {
+      if (y > 258) {
+        doc.addPage();
+        corporateLetterhead(doc, logo, settings);
+        doc.setTextColor(30, 30, 30);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10.5);
+        y = 65;
+      }
+      doc.text(line, 18, y);
+      y += 5.6;
+    }
+  }
+  if (y + 42 > 269) {
+    doc.addPage();
+    corporateLetterhead(doc, logo, settings);
+    y = 65;
+    doc.setFontSize(10.5);
+    doc.setTextColor(30, 30, 30);
   }
   y = Math.max(y + 12, 225);
   doc.text("Yours faithfully,", 18, y);

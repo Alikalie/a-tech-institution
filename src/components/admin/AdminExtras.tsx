@@ -514,12 +514,12 @@ export function LetterEditorPanel() {
     onError: (e: Error) => toast.error(e.message),
   });
   async function preview() {
-    const { downloadAcceptancePDF } = await import("@/lib/atech");
+    const { downloadAcceptancePDF, loadLetterSettings } = await import("@/lib/atech");
     const { data: c } = await supabase.from("courses").select("*").order("sort_order").limit(1).maybeSingle();
     await downloadAcceptancePDF(
       { id: "x", reference: "APP-SAMPLE", course_code: c?.code ?? "", full_name: "Sample Student", dob: null, gender: null, phone: "+232 00 000 000", email: "student@example.com", address: null, guardian_name: null, guardian_phone: null, previous_education: null, status: "accepted", student_id: "ATECH/2026/0000", submitted_at: new Date().toISOString() },
       { code: c?.code ?? "", name: c?.name ?? "Sample course", duration: c?.duration ?? "3 Months", price: c?.price ?? "" },
-      { body: m["acceptance_body"], signatoryName: m["signatory_name"], signatoryTitle: m["signatory_title"] },
+      { ...await loadLetterSettings(), body: m["acceptance_body"], signatoryName: m["signatory_name"], signatoryTitle: m["signatory_title"] },
     );
   }
   return (

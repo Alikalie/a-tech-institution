@@ -20,9 +20,10 @@ export function brandFrame(doc: jsPDF, title: string, subtitle: string) {
   doc.setTextColor(...documentColors.paper);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(19);
-  doc.text("A-TECH", 15, 20);
+  doc.text("A-TECH", width > 250 ? 15 : 34, 17);
   doc.setFontSize(5.5);
-  doc.text("INTEGRATED TECHNOLOGY & DATA ANALYSIS", 15, 26);
+  doc.text("INTEGRATED TECHNOLOGY", 15, 32);
+  doc.text("& DATA ANALYSIS", 15, 36);
   doc.setTextColor(...documentColors.yellow);
   doc.setFont("times", "bold");
   doc.setFontSize(width > 250 ? 33 : 24);
