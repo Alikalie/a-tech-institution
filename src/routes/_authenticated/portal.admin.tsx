@@ -525,8 +525,15 @@ function AdminPage() {
 
       {section === "Applications" && (
         <Panel title={`Applications (${applications.data?.length ?? 0})`}>
+          <div className="mb-4 grid gap-3 sm:grid-cols-2">
+            <Input aria-label="Search applications" placeholder="Search name, email, reference or course" value={applicationSearch} onChange={(e) => setApplicationSearch(e.target.value)} />
+            <select aria-label="Application status" className="h-10 w-full rounded border bg-background px-3 text-sm" value={applicationStatus} onChange={(e) => setApplicationStatus(e.target.value)}>
+              <option value="all">All statuses</option><option value="submitted">Submitted</option><option value="accepted">Accepted</option><option value="rejected">Rejected</option>
+            </select>
+          </div>
+          {applications.error && <p role="alert" className="text-destructive">Could not load applications. <Button variant="link" onClick={() => applications.refetch()}>Retry</Button></p>}
           <div className="space-y-3">
-            {(applications.data ?? []).map((app) => (
+            {(applications.data ?? []).filter((app) => matchesApplication(app, applicationSearch, applicationStatus)).map((app) => (
               <article
                 key={app.id}
                 className="flex flex-wrap items-center justify-between gap-3 rounded-md border p-3"
@@ -564,8 +571,8 @@ function AdminPage() {
                 </div>
               </article>
             ))}
-            {!applications.data?.length ? (
-              <p className="text-sm text-muted-foreground">No applications submitted yet.</p>
+            {!applications.isLoading && !applications.error && !(applications.data ?? []).some((app) => matchesApplication(app, applicationSearch, applicationStatus)) ? (
+              <p className="text-sm text-muted-foreground">No applications match these filters.</p>
             ) : null}
           </div>
         </Panel>

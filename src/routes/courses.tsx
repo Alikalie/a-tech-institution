@@ -29,7 +29,7 @@ function CoursesPage() {
   const { data: courses } = useQuery({
     queryKey: ["public-courses"],
     queryFn: async () => {
-      const { data } = await supabase.from("courses").select("*").order("sort_order");
+      const { data } = await supabase.from("courses").select("*").eq("active", true).is("deleted_at", null).order("sort_order");
       return data ?? [];
     },
   });

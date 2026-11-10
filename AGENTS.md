@@ -12,3 +12,7 @@
 - Applicant AI verification uses an authenticated raw streaming route with server-validated super-admin roles and application-owned evidence; it never changes admission decisions.
 - AI Gateway providers and prompts live in server-only modules, use request-scoped run IDs, and disable automatic retries to prevent replaying terminal failures.
 - Provider access-denial state is durable in site settings; resumption requires a super administrator's explicit new review after access restoration.
+- Official certificates and acceptance letters share the document-brand frame to keep exported documents visually consistent.
+- Course removal archives the catalog row and excludes it from new applications; historical application references remain intact.
+- Generic business-record editing is super-admin-only and allowlisted; roles and audit logs use separate protected controls.
+- Use Nitro's Vercel preset only when VERCEL=1; preserve Lovable's managed publishing target otherwise.
