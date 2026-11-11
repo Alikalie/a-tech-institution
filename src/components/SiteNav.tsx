@@ -5,6 +5,9 @@ import { ATECH } from "@/lib/atech";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { useSiteContent } from "@/hooks/useSiteContent";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { publicLink } from "@/lib/site-settings";
 
 const links = [
   { to: "/", label: "Home" },
@@ -16,6 +19,11 @@ const links = [
 
 export function SiteNav() {
   const [open, setOpen] = useState(false);
+  const { data: navigation } = useQuery({ queryKey: ["public-navigation"], refetchInterval: 30000, queryFn: async () => {
+    const { data, error } = await supabase.from("nav_links").select("*").eq("visible", true).order("sort_order");
+    if (error) throw error;
+    return data.filter((item) => item.location === "header" || item.location === "both").filter((item) => publicLink(item.url));
+  } });
   return (
     <header className="brand-bar sticky top-0 z-40 px-5 py-3 shadow-lg">
       <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 lg:flex lg:justify-between">
@@ -32,7 +40,7 @@ export function SiteNav() {
         </Link>
         <Button size="icon" variant="ghost" className="shrink-0 text-primary-foreground lg:hidden" aria-label={open ? "Close website menu" : "Open website menu"} aria-expanded={open} aria-controls="website-menu" onClick={() => setOpen(!open)}>{open ? <X /> : <Menu />}</Button>
         <nav id="website-menu" className={`${open ? "flex" : "hidden"} col-span-2 flex-col items-stretch gap-1 text-sm lg:flex lg:flex-row lg:items-center`} onClick={() => setOpen(false)}>
-          {links.map((l) => (
+          {navigation ? navigation.map((item) => <a key={item.id} href={publicLink(item.url)} className={`rounded px-3 py-2 text-sm ${item.is_cta ? "bg-accent font-semibold text-accent-foreground" : "text-primary-foreground hover:bg-primary-foreground/10"}`}>{item.label}</a>) : links.map((l) => (
             <Link
               key={l.to}
               to={l.to}
@@ -52,7 +60,7 @@ export function SiteNav() {
             asChild
             size="sm"
             variant="ghost"
-            className="text-primary-foreground hover:bg-white/10 hover:text-primary-foreground"
+            className="text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
           >
             <Link to="/auth" search={{ mode: "login" }}>
               Sign In
@@ -106,7 +114,7 @@ export function SiteFooter() {
           </p>
         </div>
       </div>
-      <p className="mx-auto mt-10 max-w-6xl border-t border-white/10 pt-6 text-xs">
+      <p className="mx-auto mt-10 max-w-6xl border-t border-primary-foreground/10 pt-6 text-xs">
         {content?.footer_text || `© ${new Date().getFullYear()} ${ATECH.name}. All rights reserved.`}
       </p>
     </footer>

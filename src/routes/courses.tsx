@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteNav, SiteFooter } from "@/components/SiteNav";
 import { Button } from "@/components/ui/button";
+import { EducationHero } from "@/components/EducationHero";
 
 export const Route = createFileRoute("/courses")({
   head: () => ({
@@ -37,12 +38,8 @@ function CoursesPage() {
   return (
     <div className="min-h-screen bg-background">
       <SiteNav />
+      <EducationHero page="courses" title="A-TECH Courses & Programmes" description="Practical computer, technology and data training." />
       <main className="mx-auto max-w-5xl px-5 py-14">
-        <h1 className="text-4xl font-bold">Courses & Programmes</h1>
-        <p className="mt-3 max-w-2xl text-muted-foreground">
-          Programmes are published by the A-TECH administration and appear here as soon as they are
-          released. Select any course when you complete your application.
-        </p>
         <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {(courses ?? []).map((c) => (
             <article key={c.code} className="card-elevated p-5">

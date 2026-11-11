@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteNav, SiteFooter } from "@/components/SiteNav";
 import { Button } from "@/components/ui/button";
+import { EducationHero } from "@/components/EducationHero";
 
 export const Route = createFileRoute("/admissions")({
   head: () => ({
@@ -52,8 +53,8 @@ function AdmissionsPage() {
   return (
     <div className="min-h-screen bg-background">
       <SiteNav />
+      <EducationHero page="admissions" title="A-TECH Admissions" />
       <main className="mx-auto max-w-5xl px-5 py-14">
-        <h1 className="text-4xl font-bold">Admissions</h1>
 
         <h2 className="gold-rule mt-10 pb-2 text-2xl">How to apply</h2>
         <ol className="mt-6 grid gap-3 sm:grid-cols-2">

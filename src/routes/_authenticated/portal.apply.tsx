@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { usePortal } from "@/hooks/usePortal";
+import { useSiteContent } from "@/hooks/useSiteContent";
+import { educationImages, imageSource } from "@/lib/site-settings";
 
 export const Route = createFileRoute("/_authenticated/portal/apply")({
   head: () => ({ meta: [
@@ -79,6 +81,7 @@ const initial = {
 type FormState = typeof initial;
 
 function ApplyPage() {
+  const { data: content } = useSiteContent();
   const { data: portal, refresh } = usePortal();
   const navigate = useNavigate();
   const [form, setForm] = useState<FormState>({ ...initial });
@@ -216,7 +219,8 @@ function ApplyPage() {
   const courseName = courses?.find((c) => c.code === form.course_code)?.name ?? "—";
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="application-background max-w-3xl space-y-6 overflow-hidden rounded">
+      <img src={imageSource(content?.application_background, educationImages.study)} alt="" width={1536} height={1024} loading="lazy" className="application-photo" />
       <div>
         <h1 className="text-2xl font-bold">A-TECH registration &amp; application form</h1>
         <p className="text-sm text-muted-foreground">
