@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { SiteNav, SiteFooter } from "@/components/SiteNav";
 import { ATECH } from "@/lib/atech";
 import { useSiteContent } from "@/hooks/useSiteContent";
+import { EducationHero } from "@/components/EducationHero";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
@@ -38,8 +39,8 @@ function AboutPage() {
   return (
     <div className="min-h-screen bg-background">
       <SiteNav />
+      <EducationHero page="about" title={`About ${ATECH.name}`} />
       <main className="mx-auto max-w-5xl px-5 py-14">
-        <h1 className="text-4xl font-bold">About {ATECH.name}</h1>
         <p className="mt-4 max-w-2xl whitespace-pre-line text-muted-foreground">
           {content?.about_text || `A-TECH is a computer training institute focused on integrated technology and data analysis. We prepare learners for real work. Visit us at ${content?.contact_address || ATECH.address}.`}
         </p>

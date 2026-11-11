@@ -1,4 +1,5 @@
 # A-TECH administration and branding
+- [x] Add editable education backgrounds and public-page headings; verify phone loading and super-admin record controls.
 - [x] Certificate generation and matching acceptance-letter branding.
 - [x] Course update/removal with preservation of submitted records; secure application-data CRUD.
 - [x] Application full details, passport and document links, search and status filters.

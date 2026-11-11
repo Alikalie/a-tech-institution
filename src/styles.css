@@ -88,6 +88,7 @@
   --success: oklch(0.52 0.11 155);
   --warning: oklch(0.62 0.15 55);
   --gradient-navy: linear-gradient(135deg, oklch(0.5 0.19 258), oklch(0.36 0.17 264));
+  --education-shade: linear-gradient(90deg, oklch(0.28 0.11 262 / 0.94), oklch(0.32 0.13 262 / 0.66) 55%, oklch(0.32 0.13 262 / 0.12));
   --shadow-card: 0 1px 2px oklch(0.26 0.015 265 / 0.06), 0 8px 24px oklch(0.26 0.015 265 / 0.05);
   --chart-1: oklch(0.48 0.19 262);
   --chart-2: oklch(0.84 0.17 85);
@@ -184,3 +185,10 @@
 @utility gold-rule {
   border-bottom: 2px solid var(--color-gold);
 }
+
+.education-hero { background: var(--primary); }
+.education-shade { background: var(--education-shade); }
+.application-background { position: relative; isolation: isolate; padding: 1rem; }
+.application-background > .application-photo { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; opacity: 0.45; }
+.application-background::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--background); opacity: 0.5; }
+@media (max-width: 639px) { .education-shade { background: color-mix(in oklch, var(--navy-deep) 76%, transparent); } }

@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { courseRemovalUpdate, matchesApplication } from "./admin-rules";
+import { courseRemovalUpdate, matchesApplication, editableTables, recordKey } from "./admin-rules";
 describe("Administration rules", () => {
+  it("permits site content editing while keeping roles and audit logs separate", () => {
+    expect(editableTables).toContain("site_content");
+    expect(editableTables).not.toContain("user_roles");
+    expect(editableTables).not.toContain("activity_log");
+    expect(recordKey("site_content")).toBe("key");
+    expect(recordKey("applications")).toBe("id");
+  });
   it("removes courses from new applications without deleting historical references", () => {
     expect(courseRemovalUpdate("2026-11-09T10:31:00Z")).toEqual({ active: false, deleted_at: "2026-11-09T10:31:00Z" });
   });

@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { SiteNav, SiteFooter } from "@/components/SiteNav";
 import { ATECH } from "@/lib/atech";
 import { useSiteContent } from "@/hooks/useSiteContent";
+import { EducationHero } from "@/components/EducationHero";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -29,11 +30,8 @@ function ContactPage() {
   return (
     <div className="min-h-screen bg-background">
       <SiteNav />
+      <EducationHero page="contact" title="Contact A-TECH" description="Visit the A-TECH office for admissions, application-fee payment and course enquiries." />
       <main className="mx-auto max-w-3xl px-5 py-14">
-        <h1 className="text-4xl font-bold">Contact us</h1>
-        <p className="mt-3 text-muted-foreground">
-          Visit the A-TECH office for admissions, application-fee payment and course enquiries.
-        </p>
         <div className="mt-8 grid gap-4 sm:grid-cols-2">
           <div className="card-elevated p-5">
             <h2 className="text-sm font-semibold">Office</h2>

@@ -5,6 +5,7 @@ import { SiteNav, SiteFooter } from "@/components/SiteNav";
 import { Button } from "@/components/ui/button";
 import { ATECH } from "@/lib/atech";
 import { useSiteContent } from "@/hooks/useSiteContent";
+import { imageSource } from "@/lib/site-settings";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -53,19 +54,21 @@ function Landing() {
       <main>
         {content?.announcement && <div className="bg-accent px-5 py-3 text-center text-sm text-accent-foreground">{content.announcement}</div>}
         {/* Hero */}
-        <section className="brand-bar relative overflow-hidden px-5 py-20">
-          <div className="mx-auto grid max-w-6xl gap-10 md:grid-cols-[1.15fr_1fr] md:items-center">
-            <div>
+        <section className="education-hero relative isolate overflow-hidden border-b-4 border-accent px-5 py-6 sm:py-16">
+          <img src={imageSource(content?.["home_background"])} alt="Students and tutor in a computer training classroom" width={1536} height={1024} className="absolute inset-0 -z-20 h-full w-full object-cover object-right" />
+          <div className="education-shade absolute inset-0 -z-10" />
+          <div className="mx-auto max-w-6xl">
+            <div className="max-w-xl">
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold-soft">
                 {ATECH.tagline}
               </p>
-              <h1 className="mt-4 font-display text-4xl leading-tight font-bold text-primary-foreground md:text-6xl">
+              <h1 className="mt-4 font-display text-3xl leading-tight font-bold text-primary-foreground sm:text-5xl">
                  {content?.hero_title || "A-TECH Computer Training"}
               </h1>
-              <p className="mt-5 max-w-xl text-primary-foreground/80">
+              <p className="mt-4 max-w-xl text-sm text-primary-foreground/90 sm:text-base">
                  {content?.hero_subtitle || "Apply for practical computer training, track your admission and access your A-TECH student documents."}
               </p>
-              <div className="mt-8 flex flex-wrap gap-3">
+              <div className="mt-5 flex flex-wrap gap-3 sm:mt-8">
                 <Button asChild size="lg" className="bg-accent font-semibold text-accent-foreground hover:bg-accent/90">
                   <Link to="/auth" search={{ mode: "register" }}>
                     Apply Now
@@ -75,12 +78,12 @@ function Landing() {
                   asChild
                   size="lg"
                   variant="outline"
-                  className="border-white/30 bg-transparent text-primary-foreground hover:bg-white/10 hover:text-primary-foreground"
+                  className="border-primary-foreground/50 bg-transparent text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
                 >
                   <Link to="/courses">Browse courses</Link>
                 </Button>
               </div>
-              <dl className="mt-10 grid max-w-md grid-cols-3 gap-4 text-primary-foreground">
+              <dl className="mt-5 grid max-w-md grid-cols-3 gap-4 text-primary-foreground sm:mt-10">
                 {[
                   [String(courses?.length ?? 0).padStart(2, "0"), "Programmes"],
                   ["100%", "Online applications"],
@@ -96,27 +99,13 @@ function Landing() {
               </dl>
             </div>
 
-            <div className="card-elevated bg-card p-6">
-              <h2 className="gold-rule pb-2 text-lg">Admission in 5 steps</h2>
-              <ol className="mt-5 space-y-4 text-sm">
-                {steps.map(([title, detail], i) => (
-                  <li key={title} className="flex gap-3">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-bold text-accent-foreground">
-                      {i + 1}
-                    </span>
-                    <span>
-                      <span className="font-semibold text-foreground">{title}</span>
-                      <span className="block text-muted-foreground">{detail}</span>
-                    </span>
-                  </li>
-                ))}
-              </ol>
-            </div>
           </div>
         </section>
 
         {/* Highlights */}
-        <section className="mx-auto max-w-6xl px-5 py-16">
+        <section className="mx-auto max-w-6xl px-5 py-8">
+          <h2 className="gold-rule pb-2 text-xl">Admission in 5 steps</h2>
+          <ol className="my-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-5">{steps.map(([title, detail], i) => <li key={title} className="min-w-0 text-sm"><span className="mb-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-accent font-semibold text-accent-foreground">{i + 1}</span><h3 className="font-semibold">{title}</h3><p className="mt-2 text-muted-foreground">{detail}</p></li>)}</ol>
           <div className="grid gap-4 md:grid-cols-3">
             {[
               [
