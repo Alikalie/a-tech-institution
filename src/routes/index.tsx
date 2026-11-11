@@ -54,7 +54,7 @@ function Landing() {
       <main>
         {content?.announcement && <div className="bg-accent px-5 py-3 text-center text-sm text-accent-foreground">{content.announcement}</div>}
         {/* Hero */}
-        <section className="education-hero relative isolate overflow-hidden border-b-4 border-accent px-5 py-10 sm:py-16">
+        <section className="education-hero relative isolate overflow-hidden border-b-4 border-accent px-5 py-6 sm:py-16">
           <img src={imageSource(content?.["home_background"])} alt="Students and tutor in a computer training classroom" width={1536} height={1024} className="absolute inset-0 -z-20 h-full w-full object-cover object-right" />
           <div className="education-shade absolute inset-0 -z-10" />
           <div className="mx-auto max-w-6xl">
@@ -65,10 +65,10 @@ function Landing() {
               <h1 className="mt-4 font-display text-3xl leading-tight font-bold text-primary-foreground sm:text-5xl">
                  {content?.hero_title || "A-TECH Computer Training"}
               </h1>
-              <p className="mt-5 max-w-xl text-primary-foreground/80">
+              <p className="mt-4 max-w-xl text-sm text-primary-foreground/90 sm:text-base">
                  {content?.hero_subtitle || "Apply for practical computer training, track your admission and access your A-TECH student documents."}
               </p>
-              <div className="mt-8 flex flex-wrap gap-3">
+              <div className="mt-5 flex flex-wrap gap-3 sm:mt-8">
                 <Button asChild size="lg" className="bg-accent font-semibold text-accent-foreground hover:bg-accent/90">
                   <Link to="/auth" search={{ mode: "register" }}>
                     Apply Now
@@ -83,7 +83,7 @@ function Landing() {
                   <Link to="/courses">Browse courses</Link>
                 </Button>
               </div>
-              <dl className="mt-10 grid max-w-md grid-cols-3 gap-4 text-primary-foreground">
+              <dl className="mt-5 grid max-w-md grid-cols-3 gap-4 text-primary-foreground sm:mt-10">
                 {[
                   [String(courses?.length ?? 0).padStart(2, "0"), "Programmes"],
                   ["100%", "Online applications"],
