@@ -644,9 +644,9 @@ export const manageRecords = createServerFn({ method: "POST" })
     const primaryKey = recordKey(data.table);
     if (data.action !== "insert") delete record[primaryKey];
     const result = data.action === "delete"
-      ? await table.delete().eq(primaryKey, data.id ?? "")
+      ? await table.delete().filter(primaryKey, "eq", data.id ?? "")
       : data.action === "update"
-        ? await table.update(record as never).eq(primaryKey, data.id ?? "")
+        ? await table.update(record as never).filter(primaryKey, "eq", data.id ?? "")
         : await table.insert(record as never);
     if (result.error) throw new Error(result.error.message);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

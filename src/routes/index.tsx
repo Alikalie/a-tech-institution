@@ -55,7 +55,7 @@ function Landing() {
         {content?.announcement && <div className="bg-accent px-5 py-3 text-center text-sm text-accent-foreground">{content.announcement}</div>}
         {/* Hero */}
         <section className="education-hero relative isolate overflow-hidden border-b-4 border-accent px-5 py-10 sm:py-16">
-          <img src={imageSource(content?.home_background)} alt="Students and tutor in a computer training classroom" width={1536} height={1024} className="absolute inset-0 -z-20 h-full w-full object-cover object-right" />
+          <img src={imageSource(content?.["home_background"])} alt="Students and tutor in a computer training classroom" width={1536} height={1024} className="absolute inset-0 -z-20 h-full w-full object-cover object-right" />
           <div className="education-shade absolute inset-0 -z-10" />
           <div className="mx-auto max-w-6xl">
             <div className="max-w-xl">

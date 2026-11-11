@@ -220,7 +220,7 @@ function ApplyPage() {
 
   return (
     <div className="application-background max-w-3xl space-y-6 overflow-hidden rounded">
-      <img src={imageSource(content?.application_background, educationImages.study)} alt="" width={1536} height={1024} loading="lazy" className="application-photo" />
+      <img src={imageSource(content?.["application_background"], educationImages.study)} alt="" width={1536} height={1024} loading="lazy" className="application-photo" />
       <div>
         <h1 className="text-2xl font-bold">A-TECH registration &amp; application form</h1>
         <p className="text-sm text-muted-foreground">
