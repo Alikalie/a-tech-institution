@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { downloadIdCard, type IdCard } from "@/lib/idcard";
 import { useServerFn } from "@tanstack/react-start";
 import { deleteCourse } from "@/lib/portal.functions";
+import { educationImages, imageSource, pageSettings } from "@/lib/site-settings";
 
 const NAVY = "hsl(var(--primary))";
 const COLORS = ["#1E5BD8", "#F5B800", "#5B8DEF", "#0B3A8F", "#FFD54A", "#9DB8F2"];
@@ -379,6 +380,7 @@ const CONTENT_KEYS: [string, string][] = [
   ["contact_address", "Contact address"],
   ["office_hours", "Office hours"],
   ["footer_text", "Footer text"],
+  ...pageSettings.filter(([page]) => page !== "home" && page !== "application").flatMap(([page, label]): [string, string][] => [[`${page}_title`, `${label} heading`], [`${page}_intro`, `${label} introduction`]]),
 ];
 
 export function SiteContentPanel() {
@@ -408,6 +410,18 @@ export function SiteContentPanel() {
             <Textarea rows={k.includes("subtitle") || k.includes("about") ? 3 : 1} value={merged[k] ?? ""} onChange={(e) => setVals({ ...vals, [k]: e.target.value })} />
           </label>
         ))}
+        <h3 className="gold-rule pt-4 pb-2 text-base">Education backgrounds</h3>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {pageSettings.map(([page, label]) => <div key={page} className="min-w-0 space-y-2">
+            <label className="block text-sm font-medium" htmlFor={`${page}-background`}>{label}</label>
+            <img src={imageSource(merged[`${page}_background`], page === "application" ? educationImages.study : educationImages.classroom)} alt={`${label} background preview`} width={1536} height={1024} loading="lazy" className="aspect-video w-full rounded object-cover" />
+            <select aria-label={`${label} photo`} className="h-10 w-full rounded border bg-background px-2 text-sm" value={["classroom", "study"].includes(merged[`${page}_background`] ?? "classroom") ? merged[`${page}_background`] ?? "classroom" : "custom"} onChange={(e) => setVals({ ...vals, [`${page}_background`]: e.target.value === "custom" ? "" : e.target.value })}>
+              <option value="classroom">Computer classroom</option><option value="study">Students studying</option><option value="custom">Custom photo</option>
+            </select>
+            <Input id={`${page}-background`} aria-label={`${label} image URL`} placeholder="https://…" value={["classroom", "study"].includes(merged[`${page}_background`] ?? "") ? "" : merged[`${page}_background`] ?? ""} onChange={(e) => setVals({ ...vals, [`${page}_background`]: e.target.value })} />
+            <Button variant="outline" size="sm" onClick={() => setVals({ ...vals, [`${page}_background`]: page === "application" ? "study" : "classroom" })}>Reset photo</Button>
+          </div>)}
+        </div>
         <Button size="sm" disabled={save.isPending} onClick={() => save.mutate()}>Save content</Button>
       </div>
     </Box>

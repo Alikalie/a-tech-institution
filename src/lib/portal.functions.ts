@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
-import { courseRemovalUpdate, editableTables } from "@/lib/admin-rules";
+import { courseRemovalUpdate, editableTables, recordKey } from "@/lib/admin-rules";
 
 type Ctx = { supabase: { rpc: Function }; userId: string };
 
@@ -626,7 +626,7 @@ export const manageRecords = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({
     table: z.enum(editableTables),
     action: z.enum(["list", "insert", "update", "delete"]),
-    id: z.string().uuid().optional(),
+    id: z.string().min(1).optional(),
     record: z.string().optional(),
   }).parse(input))
   .handler(async ({ data, context }) => {
@@ -641,11 +641,12 @@ export const manageRecords = createServerFn({ method: "POST" })
     const parsed: unknown = JSON.parse(data.record ?? "{}");
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Enter one record object.");
     const record = { ...parsed } as Record<string, unknown>;
-    if (data.action !== "insert") delete record["id"];
+    const primaryKey = recordKey(data.table);
+    if (data.action !== "insert") delete record[primaryKey];
     const result = data.action === "delete"
-      ? await table.delete().eq("id", data.id ?? "")
+      ? await table.delete().eq(primaryKey, data.id ?? "")
       : data.action === "update"
-        ? await table.update(record as never).eq("id", data.id ?? "")
+        ? await table.update(record as never).eq(primaryKey, data.id ?? "")
         : await table.insert(record as never);
     if (result.error) throw new Error(result.error.message);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

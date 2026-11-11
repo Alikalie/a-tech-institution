@@ -1,4 +1,5 @@
-export const editableTables = ["profiles", "applications", "payments", "grades", "schedules", "notifications", "application_documents", "id_cards", "programmes", "nav_links", "form_fields"] as const;
+export const editableTables = ["profiles", "applications", "payments", "grades", "schedules", "notifications", "application_documents", "id_cards", "programmes", "nav_links", "form_fields", "site_content"] as const;
+export function recordKey(table: string) { return table === "site_content" ? "key" : "id"; }
 export function courseRemovalUpdate(now: string) {
   return { active: false, deleted_at: now };
 }

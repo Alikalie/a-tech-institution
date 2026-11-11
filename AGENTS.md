@@ -15,4 +15,5 @@
 - Official certificates and acceptance letters share the document-brand frame to keep exported documents visually consistent.
 - Course removal archives the catalog row and excludes it from new applications; historical application references remain intact.
 - Generic business-record editing is super-admin-only and allowlisted; roles and audit logs use separate protected controls.
+- Public-page photos and headings use shared site settings with bundled education-image fallbacks; custom photos accept HTTPS only to keep public rendering safe.
 - Use Nitro's Vercel preset only when VERCEL=1; preserve Lovable's managed publishing target otherwise.
