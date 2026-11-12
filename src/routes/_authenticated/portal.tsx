@@ -28,6 +28,7 @@ function navFor(role: string, verified: boolean): NavItem[] {
       { to: "/portal/grades", label: "Grades & results" },
       { to: "/portal/schedule", label: "Timetable" },
       { to: "/portal/applications", label: "My documents" },
+      { to: "/portal/certificates", label: "My certificates" },
       { to: "/portal/notifications", label: "Notifications" },
       { to: "/portal/profile", label: "My profile" },
     ];
