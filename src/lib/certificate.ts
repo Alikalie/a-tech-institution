@@ -1,5 +1,6 @@
 import { brandFrame, documentColors, loadBrandLogo } from "@/lib/document-brand";
-export type CertificateValues = { fullName: string; courseName: string; startDate: string; endDate: string; issueDate: string; number: string; director: string; headOfDepartment: string };
+import type { CertificateValues } from "./certificate-rules";
+export type { CertificateValues } from "./certificate-rules";
 export async function downloadCertificate(values: CertificateValues) {
   const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ orientation: "landscape", format: "a4" });
@@ -41,10 +42,12 @@ export async function downloadCertificate(values: CertificateValues) {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   const courseBottom = 121 + (courseLines.length - 1) * 5;
-  doc.text("Demonstrating commitment, dedication and excellence in the programme.", 181, courseBottom + 9, { align: "center" });
+  doc.text(values.award || "Demonstrating commitment, dedication and excellence in the programme.", 181, courseBottom + 9, { align: "center", maxWidth: 180 });
   const date = (v: string) => new Date(`${v}T00:00:00`).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
   doc.setFont("helvetica", "bold");
   doc.text(`CONDUCTED FROM ${date(values.startDate)} TO ${date(values.endDate)}`, 181, courseBottom + 20, { align: "center" });
+  doc.setFontSize(8);
+  doc.text(`STUDENT ID: ${values.studentId || "—"}   |   DURATION: ${values.duration || "—"}`, 181, courseBottom + 27, { align: "center", maxWidth: 180 });
   doc.setFontSize(10);
   doc.line(87, 171, 141, 171);
   doc.line(224, 171, 277, 171);
