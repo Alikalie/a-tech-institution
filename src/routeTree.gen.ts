@@ -21,6 +21,7 @@ import { Route as AuthenticatedPortalIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedPortalAdminRouteImport } from './routes/_authenticated/portal.admin'
 import { Route as AuthenticatedPortalApplicationsRouteImport } from './routes/_authenticated/portal.applications'
 import { Route as AuthenticatedPortalApplyRouteImport } from './routes/_authenticated/portal.apply'
+import { Route as AuthenticatedPortalCertificatesRouteImport } from './routes/_authenticated/portal.certificates'
 import { Route as AuthenticatedPortalGradesRouteImport } from './routes/_authenticated/portal.grades'
 import { Route as AuthenticatedPortalNotificationsRouteImport } from './routes/_authenticated/portal.notifications'
 import { Route as AuthenticatedPortalProfileRouteImport } from './routes/_authenticated/portal.profile'
@@ -92,6 +93,12 @@ const AuthenticatedPortalApplyRoute =
     path: '/apply',
     getParentRoute: () => AuthenticatedPortalRoute,
   } as any)
+const AuthenticatedPortalCertificatesRoute =
+  AuthenticatedPortalCertificatesRouteImport.update({
+    id: '/certificates',
+    path: '/certificates',
+    getParentRoute: () => AuthenticatedPortalRoute,
+  } as any)
 const AuthenticatedPortalGradesRoute =
   AuthenticatedPortalGradesRouteImport.update({
     id: '/grades',
@@ -146,6 +153,7 @@ export interface FileRoutesByFullPath {
   '/portal/admin': typeof AuthenticatedPortalAdminRoute
   '/portal/applications': typeof AuthenticatedPortalApplicationsRoute
   '/portal/apply': typeof AuthenticatedPortalApplyRoute
+  '/portal/certificates': typeof AuthenticatedPortalCertificatesRoute
   '/portal/grades': typeof AuthenticatedPortalGradesRoute
   '/portal/notifications': typeof AuthenticatedPortalNotificationsRoute
   '/portal/profile': typeof AuthenticatedPortalProfileRoute
@@ -165,6 +173,7 @@ export interface FileRoutesByTo {
   '/portal/admin': typeof AuthenticatedPortalAdminRoute
   '/portal/applications': typeof AuthenticatedPortalApplicationsRoute
   '/portal/apply': typeof AuthenticatedPortalApplyRoute
+  '/portal/certificates': typeof AuthenticatedPortalCertificatesRoute
   '/portal/grades': typeof AuthenticatedPortalGradesRoute
   '/portal/notifications': typeof AuthenticatedPortalNotificationsRoute
   '/portal/profile': typeof AuthenticatedPortalProfileRoute
@@ -187,6 +196,7 @@ export interface FileRoutesById {
   '/_authenticated/portal/admin': typeof AuthenticatedPortalAdminRoute
   '/_authenticated/portal/applications': typeof AuthenticatedPortalApplicationsRoute
   '/_authenticated/portal/apply': typeof AuthenticatedPortalApplyRoute
+  '/_authenticated/portal/certificates': typeof AuthenticatedPortalCertificatesRoute
   '/_authenticated/portal/grades': typeof AuthenticatedPortalGradesRoute
   '/_authenticated/portal/notifications': typeof AuthenticatedPortalNotificationsRoute
   '/_authenticated/portal/profile': typeof AuthenticatedPortalProfileRoute
@@ -209,6 +219,7 @@ export interface FileRouteTypes {
     | '/portal/admin'
     | '/portal/applications'
     | '/portal/apply'
+    | '/portal/certificates'
     | '/portal/grades'
     | '/portal/notifications'
     | '/portal/profile'
@@ -228,6 +239,7 @@ export interface FileRouteTypes {
     | '/portal/admin'
     | '/portal/applications'
     | '/portal/apply'
+    | '/portal/certificates'
     | '/portal/grades'
     | '/portal/notifications'
     | '/portal/profile'
@@ -249,6 +261,7 @@ export interface FileRouteTypes {
     | '/_authenticated/portal/admin'
     | '/_authenticated/portal/applications'
     | '/_authenticated/portal/apply'
+    | '/_authenticated/portal/certificates'
     | '/_authenticated/portal/grades'
     | '/_authenticated/portal/notifications'
     | '/_authenticated/portal/profile'
@@ -356,6 +369,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPortalApplyRouteImport
       parentRoute: typeof AuthenticatedPortalRoute
     }
+    '/_authenticated/portal/certificates': {
+      id: '/_authenticated/portal/certificates'
+      path: '/certificates'
+      fullPath: '/portal/certificates'
+      preLoaderRoute: typeof AuthenticatedPortalCertificatesRouteImport
+      parentRoute: typeof AuthenticatedPortalRoute
+    }
     '/_authenticated/portal/grades': {
       id: '/_authenticated/portal/grades'
       path: '/grades'
@@ -412,6 +432,7 @@ interface AuthenticatedPortalRouteChildren {
   AuthenticatedPortalAdminRoute: typeof AuthenticatedPortalAdminRoute
   AuthenticatedPortalApplicationsRoute: typeof AuthenticatedPortalApplicationsRoute
   AuthenticatedPortalApplyRoute: typeof AuthenticatedPortalApplyRoute
+  AuthenticatedPortalCertificatesRoute: typeof AuthenticatedPortalCertificatesRoute
   AuthenticatedPortalGradesRoute: typeof AuthenticatedPortalGradesRoute
   AuthenticatedPortalNotificationsRoute: typeof AuthenticatedPortalNotificationsRoute
   AuthenticatedPortalProfileRoute: typeof AuthenticatedPortalProfileRoute
@@ -425,6 +446,7 @@ const AuthenticatedPortalRouteChildren: AuthenticatedPortalRouteChildren = {
   AuthenticatedPortalAdminRoute: AuthenticatedPortalAdminRoute,
   AuthenticatedPortalApplicationsRoute: AuthenticatedPortalApplicationsRoute,
   AuthenticatedPortalApplyRoute: AuthenticatedPortalApplyRoute,
+  AuthenticatedPortalCertificatesRoute: AuthenticatedPortalCertificatesRoute,
   AuthenticatedPortalGradesRoute: AuthenticatedPortalGradesRoute,
   AuthenticatedPortalNotificationsRoute: AuthenticatedPortalNotificationsRoute,
   AuthenticatedPortalProfileRoute: AuthenticatedPortalProfileRoute,
