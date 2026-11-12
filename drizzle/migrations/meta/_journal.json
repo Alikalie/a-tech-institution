@@ -64,6 +64,13 @@
       "when": 1794220423257,
       "tag": "0008_course_removal_preserves_records",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794441759318,
+      "tag": "0009_student_certificates",
+      "breakpoints": true
     }
   ]
 }
