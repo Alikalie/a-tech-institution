@@ -1,5 +1,6 @@
 # A-TECH administration and branding
-- [ ] Editable super-admin certificate issuance, student downloads and application/result statistics; verify the complete certificate flow.
+- [x] Editable super-admin certificate issuance, student downloads and application/result statistics; administrator draft, issue, revision and PDF preview verified.
+- [ ] Verify issued certificate download while signed in as the recipient — blocked by declined student-account testing permission.
 - [x] Add editable education backgrounds and public-page headings; verify phone loading and super-admin record controls.
 - [x] Certificate generation and matching acceptance-letter branding.
 - [x] Course update/removal with preservation of submitted records; secure application-data CRUD.
