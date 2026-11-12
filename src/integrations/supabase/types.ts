@@ -261,6 +261,47 @@ export type Database = {
           },
         ]
       }
+      certificates: {
+        Row: {
+          application_id: string
+          id: string
+          issued_at: string | null
+          issued_by: string
+          status: string
+          updated_at: string
+          user_id: string
+          values: Json
+        }
+        Insert: {
+          application_id: string
+          id?: string
+          issued_at?: string | null
+          issued_by: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          values: Json
+        }
+        Update: {
+          application_id?: string
+          id?: string
+          issued_at?: string | null
+          issued_by?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          values?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "certificates_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: true
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       courses: {
         Row: {
           active: boolean

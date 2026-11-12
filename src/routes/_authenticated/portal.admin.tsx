@@ -485,7 +485,8 @@ function AdminPage() {
       {section === "Programmes" && <ProgrammesPanel />}
       {section === "ID cards" && <IdCardsPanel />}
       {section === "Acceptance letter" && <LetterEditorPanel />}
-      {section === "Certificates" && <CertificatesPanel />}
+      {section === "Certificates" && isSuper && <CertificatesPanel />}
+      {section === "Certificates" && !isSuper && <p role="alert">Super administrator access required to issue certificates.</p>}
       {section === "Data management" && isSuper && <RecordsManager />}
       {section === "Data management" && !isSuper && <p role="alert">Super administrator access required.</p>}
       {section === "Website pages" && <SiteContentPanel />}
