@@ -716,7 +716,15 @@ export type Database = {
         Returns: boolean
       }
       is_staff: { Args: { _uid: string }; Returns: boolean }
+      issue_application_payment_code: {
+        Args: { _payment_id?: string; _user_id: string }
+        Returns: Json
+      }
       next_student_id: { Args: never; Returns: string }
+      redeem_application_payment_code: {
+        Args: { _code: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "tutor" | "student" | "applicant" | "super_admin"

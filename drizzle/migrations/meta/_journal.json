@@ -71,6 +71,13 @@
       "when": 1794441759318,
       "tag": "0009_student_certificates",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794442673847,
+      "tag": "0010_atomic_payment_unlock",
+      "breakpoints": true
     }
   ]
 }
